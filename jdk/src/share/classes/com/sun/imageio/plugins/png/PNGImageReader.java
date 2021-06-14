@@ -664,6 +664,10 @@ public class PNGImageReader extends ImageReader {
             try {
                 while (true) {
                     int chunkLength = stream.readInt();
+                    // verify the chunk length first
+                    if (chunkLength < 0 || chunkLength + 4 < 0) {
+                        throw new IIOException("Invalid chunk length " + chunkLength);
+                    }
                     int chunkType = stream.readInt();
 
                     if (chunkType == IDAT_TYPE) {
