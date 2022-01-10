@@ -61,15 +61,26 @@ public class PingThis {
             return;
         }
 
+        boolean isAIX = System.getProperty("os.name").startsWith("AIX");
         boolean preferIPv4Stack = "true".equals(System
                 .getProperty("java.net.preferIPv4Stack"));
         List<String> addrs = new ArrayList<String>();
         InetAddress inetAddress = null;
 
-        addrs.add("0.0.0.0");
+        if (isAIX) {
+            addrs.add("");
+        }
+        else {
+            addrs.add("0.0.0.0");
+        }
         if (!preferIPv4Stack) {
             if (hasIPv6()) {
-                addrs.add("::0");
+                if (isAIX) {
+                    addrs.add("::0");
+                }
+                else {
+                    addrs.add("::0");
+                }
             }
         }
 
