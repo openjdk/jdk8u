@@ -70,7 +70,8 @@ MacosxDebuggerLocal.o: MacosxDebuggerLocal.m
 	echo "OS="$(OS)
 	$(JAVAH) -jni -classpath ../../../build/classes  \
 		sun.jvm.hotspot.debugger.x86.X86ThreadContext \
-		sun.jvm.hotspot.debugger.amd64.AMD64ThreadContext
+		sun.jvm.hotspot.debugger.amd64.AMD64ThreadContext \
+		sun.jvm.hotspot.debugger.aarch64.AARCH64ThreadContext
 	$(GCC) $(CFLAGS) $(FOUNDATIONFLAGS) $<
 
 sadis.o: ../../share/native/sadis.c
