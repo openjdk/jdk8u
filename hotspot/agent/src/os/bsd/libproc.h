@@ -33,6 +33,10 @@
 #include <string.h>
 #include <fcntl.h>
 
+#if defined(aarch64)
+#include "asm/ptrace.h"
+#endif
+
 #ifdef __APPLE__
 typedef enum ps_err_e {
   PS_OK, PS_ERR, PS_BADPID, PS_BADLID,
@@ -108,6 +112,10 @@ ptrace call, we refer to lwp_id of the thread.
 combination of ptrace and /proc calls.
 
 *************************************************************************************/
+
+#if defined(aarch64)
+#define user_regs_struct user_pt_regs
+#endif
 
 struct reg;
 struct ps_prochandle;
