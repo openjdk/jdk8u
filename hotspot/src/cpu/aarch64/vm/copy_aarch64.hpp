@@ -33,6 +33,9 @@
 #ifdef TARGET_OS_ARCH_linux_aarch64
 # include "copy_linux_aarch64.inline.hpp"
 #endif
+#ifdef TARGET_OS_ARCH_bsd_aarch64
+# include "copy_bsd_aarch64.inline.hpp"
+#endif
 
 
 static void pd_fill_to_words(HeapWord* tohw, size_t count, juint value) {

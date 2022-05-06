@@ -677,10 +677,10 @@ AC_DEFUN_ONCE([FLAGS_SETUP_COMPILER_FLAGS_FOR_JDK],
       # FIXME: This needs to be exported in spec.gmk due to closed legacy code.
       # FIXME: clean this up, and/or move it elsewhere.
 
-      # Setting these parameters makes it an error to link to macosx APIs that are
-      # newer than the given OS version and makes the linked binaries compatible 
-      # even if built on a newer version of the OS.
-      # The expected format is X.Y.Z
+      # Setting these parameters makes it an error to
+      # link to macosx APIs that are newer than the given OS version.
+      # The expected format for <version> is either nn.n.n or nn.nn.nn. See
+      # /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h
       MACOSX_VERSION_MIN=10.7.0
       AC_SUBST(MACOSX_VERSION_MIN)
     
@@ -692,12 +692,17 @@ AC_DEFUN_ONCE([FLAGS_SETUP_COMPILER_FLAGS_FOR_JDK],
     elif test "x$TOOLCHAIN_TYPE" = xclang; then
       # FIXME: This needs to be exported in spec.gmk due to closed legacy code.
       # FIXME: clean this up, and/or move it elsewhere.
-
-      # Setting these parameters makes it an error to link to macosx APIs that are
-      # newer than the given OS version and makes the linked binaries compatible 
+      # Setting these parameters makes it an error to
+      # link to macosx APIs that are newer than the given OS version.
       # even if built on a newer version of the OS.
+      # The expected format for <version> is either nn.n.n or nn.nn.nn. See
+      # /Applications/Xcode.app/Contents/Developer/Platforms/MacOSX.platform/Developer/SDKs/MacOSX.sdk/usr/include/AvailabilityVersions.h
       # The expected format is X.Y.Z
-      MACOSX_VERSION_MIN=10.9.0
+      if test "x$OPENJDK_TARGET_CPU_ARCH" = xaarch64; then
+        MACOSX_VERSION_MIN=11.00.00
+      else
+        MACOSX_VERSION_MIN=10.9.0
+      fi
       AC_SUBST(MACOSX_VERSION_MIN)
     
       # The macro takes the version with no dots, ex: 1070
