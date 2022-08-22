@@ -59,6 +59,15 @@ ifeq ($(findstring true, $(JVM_VARIANT_ZERO) $(JVM_VARIANT_ZEROSHARK)), true)
   ARCH             = zero
 endif
 
+# core
+ifeq ($(ARCH), riscv)
+  ARCH_DATA_MODEL  = 64
+  MAKE_ARGS        += LP64=1
+  PLATFORM         = linux-riscv64
+  VM_PLATFORM      = linux_riscv64
+  HS_ARCH          = riscv64
+endif
+
 # ia64
 ifeq ($(ARCH), ia64)
   ARCH_DATA_MODEL = 64
