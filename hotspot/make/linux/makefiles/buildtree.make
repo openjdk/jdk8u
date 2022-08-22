@@ -203,7 +203,6 @@ DATA_MODE/amd64 = 64
 DATA_MODE/ppc64 = 64
 DATA_MODE/aarch64 = 64
 
-
 DATA_MODE = $(DATA_MODE/$(BUILDARCH))
 
 ifeq ($(ENABLE_JFR), true)
