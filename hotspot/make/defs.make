@@ -297,7 +297,7 @@ ifneq ($(OSNAME),windows)
   ARCH/ppc    = ppc
   ARCH/zero   = zero
   ARCH/aarch64 = aarch64
-  ARCH/riscv64 = aarch64
+  
 
   # BUILDARCH is usually the same as SRCARCH, except for sparcv9
   BUILDARCH ?= $(SRCARCH)
