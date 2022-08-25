@@ -38,6 +38,9 @@
 #ifdef TARGET_ARCH_aarch64
 # include "vmreg_aarch64.inline.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "vmreg_riscv64.inline.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "vmreg_sparc.inline.hpp"
 #endif

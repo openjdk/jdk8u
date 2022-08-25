@@ -30,6 +30,9 @@
 #ifdef TARGET_ARCH_aarch64
 # include "jni_aarch64.h"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "jni_riscv64.h"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "jni_sparc.h"
 #endif

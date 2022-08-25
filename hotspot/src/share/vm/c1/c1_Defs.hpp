@@ -32,6 +32,9 @@
 #ifdef TARGET_ARCH_aarch64
 # include "register_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "register_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "register_sparc.hpp"
 #endif
@@ -58,6 +61,9 @@ enum {
 #endif
 #ifdef TARGET_ARCH_aarch64
 # include "c1_Defs_aarch64.hpp"
+#endif
+#ifdef TARGET_ARCH_riscv64
+# include "c1_Defs_riscv64.hpp"
 #endif
 #ifdef TARGET_ARCH_sparc
 # include "c1_Defs_sparc.hpp"

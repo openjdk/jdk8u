@@ -57,6 +57,10 @@
 # include "register_aarch64.hpp"
 # include "vm_version_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "register_riscv64.hpp"
+# include "vm_version_riscv64.hpp"
+#endif
 
 // This file contains platform-independent assembler declarations.
 
@@ -455,6 +459,9 @@ class AbstractAssembler : public ResourceObj  {
 #endif
 #ifdef TARGET_ARCH_aarch64
 # include "assembler_aarch64.hpp"
+#endif
+#ifdef TARGET_ARCH_riscv64
+# include "assembler_riscv64.hpp"
 #endif
 #ifdef TARGET_ARCH_sparc
 # include "assembler_sparc.hpp"

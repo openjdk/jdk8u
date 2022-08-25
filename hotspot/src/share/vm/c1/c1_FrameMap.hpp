@@ -88,6 +88,9 @@ class FrameMap : public CompilationResourceObj {
 #ifdef TARGET_ARCH_aarch64
 # include "c1_FrameMap_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "c1_FrameMap_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "c1_FrameMap_sparc.hpp"
 #endif

@@ -32,6 +32,9 @@
 #ifdef TARGET_ARCH_aarch64
 # include "nativeInst_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "nativeInst_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "nativeInst_sparc.hpp"
 #endif
