@@ -47,6 +47,9 @@
 #ifdef TARGET_ARCH_aarch64
 # include "bytes_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "bytes_riscv64.hpp"
+#endif
 
 u2 BytecodeConstantPool::find_or_add(BytecodeCPEntry const& bcpe) {
   u2 index;

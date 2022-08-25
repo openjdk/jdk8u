@@ -38,6 +38,9 @@ class FpuStackSim;
 #ifdef TARGET_ARCH_aarch64
 # include "c1_FpuStackSim_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "c1_FpuStackSim_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "c1_FpuStackSim_sparc.hpp"
 #endif

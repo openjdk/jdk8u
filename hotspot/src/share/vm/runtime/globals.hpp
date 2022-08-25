@@ -43,6 +43,9 @@
 #ifdef TARGET_ARCH_aarch64
 # include "globals_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "globals_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "globals_sparc.hpp"
 #endif
@@ -113,6 +116,9 @@
 #ifdef TARGET_ARCH_aarch64
 # include "c1_globals_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "c1_globals_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "c1_globals_sparc.hpp"
 #endif
@@ -144,6 +150,9 @@
 #endif
 #ifdef TARGET_ARCH_aarch64
 # include "c2_globals_aarch64.hpp"
+#endif
+#ifdef TARGET_ARCH_riscv64
+# include "c2_globals_riscv64.hpp"
 #endif
 #ifdef TARGET_ARCH_sparc
 # include "c2_globals_sparc.hpp"
