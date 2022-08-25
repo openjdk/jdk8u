@@ -623,6 +623,9 @@ class CodeBuffer: public StackObj {
 #ifdef TARGET_ARCH_aarch64
 # include "codeBuffer_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "codeBuffer_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "codeBuffer_sparc.hpp"
 #endif

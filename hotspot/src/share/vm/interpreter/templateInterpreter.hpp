@@ -193,6 +193,9 @@ class TemplateInterpreter: public AbstractInterpreter {
 #ifdef TARGET_ARCH_aarch64
 # include "templateInterpreter_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "templateInterpreter_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "templateInterpreter_sparc.hpp"
 #endif

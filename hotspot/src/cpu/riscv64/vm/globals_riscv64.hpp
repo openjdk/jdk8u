@@ -87,10 +87,7 @@ define_pd_global(intx, InlineSmallCode,          1000);
                    product,                                             \
                    diagnostic,                                          \
                    experimental,                                        \
-                   notproduct,                                          \
-                   range,                                               \
-                   constraint,                                          \
-                   writeable)                                           \
+                   notproduct)                                          \
                                                                         \
   product(bool, NearCpool, true,                                        \
          "constant pool is close to instructions")                      \

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2011, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -23,36 +23,42 @@
  * questions.
  */
 
-/* Switch to the correct jni_md.h file without reliance on -I options. */
-#ifdef TARGET_ARCH_x86
-# include "jni_x86.h"
-#endif
-#ifdef TARGET_ARCH_aarch64
-# include "jni_aarch64.h"
-#endif
-#ifdef TARGET_ARCH_riscv64
-# include "jni_riscv64.h"
-#endif
-#ifdef TARGET_ARCH_sparc
-# include "jni_sparc.h"
-#endif
-#ifdef TARGET_ARCH_zero
-# include "jni_zero.h"
-#endif
-#ifdef TARGET_ARCH_arm
-# include "jni_arm.h"
-#endif
-#ifdef TARGET_ARCH_ppc
-# include "jni_ppc.h"
-#endif
+#ifndef _JAVASOFT_JNI_MD_H_
+#define _JAVASOFT_JNI_MD_H_
+
+#if defined(SOLARIS) || defined(LINUX) || defined(_ALLBSD_SOURCE)
 
 
-/*
-  The local copies of JNI header files may be refreshed
-  from a JDK distribution by means of these commands:
+// Note: please do not change these without also changing jni_md.h in the JDK
+// repository
+#ifndef __has_attribute
+  #define __has_attribute(x) 0
+#endif
+#if (defined(__GNUC__) && ((__GNUC__ > 4) || (__GNUC__ == 4) && (__GNUC_MINOR__ > 2))) || __has_attribute(visibility)
+  #define JNIEXPORT     __attribute__((visibility("default")))
+  #define JNIIMPORT     __attribute__((visibility("default")))
+#else
+  #define JNIEXPORT
+  #define JNIIMPORT
+#endif
 
-  cp ${JDK_DIST}/solaris/include/solaris/jni_md.h  ./jni_sparc.h
-  cp ${JDK_DIST}/win32/include/win32/jni_md.h      ./jni_i486.h
-  cp ${JDK_DIST}/win32/include/jni.h               ./jni.h
+  #define JNICALL
+  typedef int jint;
+#if defined(_LP64)
+  typedef long jlong;
+#else
+  typedef long long jlong;
+#endif
 
-*/
+#else
+  #define JNIEXPORT __declspec(dllexport)
+  #define JNIIMPORT __declspec(dllimport)
+  #define JNICALL __stdcall
+
+  typedef int jint;
+  typedef __int64 jlong;
+#endif
+
+typedef signed char jbyte;
+
+#endif /* !_JAVASOFT_JNI_MD_H_ */

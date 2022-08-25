@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2018, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2014, Red Hat Inc. All rights reserved.
+ * Copyright (c) 2020, Huawei Technologies Co., Ltd. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,31 +24,22 @@
  *
  */
 
-#ifndef SHARE_VM_ASM_MACROASSEMBLER_INLINE_HPP
-#define SHARE_VM_ASM_MACROASSEMBLER_INLINE_HPP
+#ifndef CPU_RISCV64_VM_RELOCINFO_RISCV64_HPP
+#define CPU_RISCV64_VM_RELOCINFO_RISCV64_HPP
 
-#include "asm/macroAssembler.hpp"
+  // machine-dependent parts of class relocInfo
+ private:
+  enum {
+    // Relocations are byte-aligned.
+    offset_unit        =  1,
+    // We don't use format().
+    format_width       =  0
+  };
 
-#ifdef TARGET_ARCH_x86
-// no macroAssembler_x86.inline.hpp
-#endif
-#ifdef TARGET_ARCH_sparc
-# include "macroAssembler_sparc.inline.hpp"
-#endif
-#ifdef TARGET_ARCH_zero
-# include "assembler_zero.inline.hpp"
-#endif
-#ifdef TARGET_ARCH_arm
-# include "macroAssembler_arm.inline.hpp"
-#endif
-#ifdef TARGET_ARCH_ppc
-# include "macroAssembler_ppc.inline.hpp"
-#endif
-#ifdef TARGET_ARCH_aarch64
-# include "macroAssembler_aarch64.inline.hpp"
-#endif
-#ifdef TARGET_ARCH_riscv64
-# include "macroAssembler_riscv64.inline.hpp"
-#endif
+ public:
 
-#endif // SHARE_VM_ASM_MACROASSEMBLER_INLINE_HPP
+  // This platform has no oops in the code that are not also
+  // listed in the oop section.
+  static bool mustIterateImmediateOopsInCode() { return false; }
+
+#endif // CPU_RISCV64_VM_RELOCINFO_RISCV64_HPP

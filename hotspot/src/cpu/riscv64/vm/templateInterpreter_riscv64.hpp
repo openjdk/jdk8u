@@ -1,5 +1,7 @@
 /*
- * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2013, Red Hat Inc.
+ * Copyright (c) 1997, 2010, Oracle and/or its affiliates.
+ * All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -22,31 +24,17 @@
  *
  */
 
-#ifndef SHARE_VM_ASM_MACROASSEMBLER_INLINE_HPP
-#define SHARE_VM_ASM_MACROASSEMBLER_INLINE_HPP
+#ifndef CPU_RISCV64_VM_TEMPLATEINTERPRETER_RISCV64_HPP
+#define CPU_RISCV64_VM_TEMPLATEINTERPRETER_RISCV64_HPP
 
-#include "asm/macroAssembler.hpp"
 
-#ifdef TARGET_ARCH_x86
-// no macroAssembler_x86.inline.hpp
-#endif
-#ifdef TARGET_ARCH_sparc
-# include "macroAssembler_sparc.inline.hpp"
-#endif
-#ifdef TARGET_ARCH_zero
-# include "assembler_zero.inline.hpp"
-#endif
-#ifdef TARGET_ARCH_arm
-# include "macroAssembler_arm.inline.hpp"
-#endif
-#ifdef TARGET_ARCH_ppc
-# include "macroAssembler_ppc.inline.hpp"
-#endif
-#ifdef TARGET_ARCH_aarch64
-# include "macroAssembler_aarch64.inline.hpp"
-#endif
-#ifdef TARGET_ARCH_riscv64
-# include "macroAssembler_riscv64.inline.hpp"
-#endif
+  protected:
 
-#endif // SHARE_VM_ASM_MACROASSEMBLER_INLINE_HPP
+  // Size of interpreter code.  Increase if too small.  Interpreter will
+  // fail with a guarantee ("not enough space for interpreter generation");
+  // if too small.
+  // Run with +PrintInterpreter to get the VM to print out the size.
+  // Max size with JVMTI
+  const static int InterpreterCodeSize = 200 * 1024;
+
+#endif // CPU_AARCH64_VM_TEMPLATEINTERPRETER_AARCH64_HPP

@@ -185,6 +185,9 @@ public:
 #ifdef TARGET_ARCH_aarch64
 # include "methodHandles_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "methodHandles_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "methodHandles_sparc.hpp"
 #endif

@@ -37,6 +37,9 @@
 #ifdef TARGET_ARCH_aarch64
 # include "jniTypes_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "jniTypes_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "jniTypes_sparc.hpp"
 #endif
@@ -102,6 +105,9 @@ inline oop* frame::interpreter_frame_temp_oop_addr() const {
 #endif
 #ifdef TARGET_ARCH_aarch64
 # include "frame_aarch64.inline.hpp"
+#endif
+#ifdef TARGET_ARCH_riscv64
+# include "frame_riscv64.inline.hpp"
 #endif
 #ifdef TARGET_ARCH_sparc
 # include "frame_sparc.inline.hpp"
