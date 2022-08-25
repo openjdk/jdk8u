@@ -151,6 +151,9 @@ class Interpreter: public CC_INTERP_ONLY(CppInterpreter) NOT_CC_INTERP(TemplateI
 #ifdef TARGET_ARCH_aarch64
 # include "interpreter_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "interpreter_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "interpreter_sparc.hpp"
 #endif

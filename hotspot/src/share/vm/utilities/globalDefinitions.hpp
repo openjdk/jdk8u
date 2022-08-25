@@ -443,6 +443,9 @@ enum RTMState {
 #ifdef TARGET_ARCH_aarch64
 # include "globalDefinitions_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "globalDefinitions_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "globalDefinitions_sparc.hpp"
 #endif

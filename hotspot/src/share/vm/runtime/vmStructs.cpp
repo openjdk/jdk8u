@@ -110,6 +110,9 @@
 #ifdef TARGET_ARCH_aarch64
 # include "vmStructs_aarch64.hpp"
 #endif
+#ifdef TARGET_ARCH_riscv64
+# include "vmStructs_riscv64.hpp"
+#endif
 #ifdef TARGET_ARCH_sparc
 # include "vmStructs_sparc.hpp"
 #endif
