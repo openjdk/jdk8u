@@ -1,0 +1,15 @@
+os_family = linux
+
+arch = riscv
+
+arch_model = riscv64
+
+os_arch = linux_riscv
+
+os_arch_model = linux_riscv64
+
+lib_arch = riscv64
+
+compiler = gcc
+
+sysdefs = -DLINUX -D_GNU_SOURCE -DRISCV64
