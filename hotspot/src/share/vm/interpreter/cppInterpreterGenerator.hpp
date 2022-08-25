@@ -53,9 +53,6 @@ class CppInterpreterGenerator: public AbstractInterpreterGenerator {
 #ifdef TARGET_ARCH_aarch64
 # include "cppInterpreterGenerator_aarch64.hpp"
 #endif
-#ifdef TARGET_ARCH_riscv64
-# include "cppInterpreterGenerator_riscv64.hpp"
-#endif
 #ifdef TARGET_ARCH_sparc
 # include "cppInterpreterGenerator_sparc.hpp"
 #endif
