@@ -119,6 +119,8 @@ class StubRoutines: AllStatic {
 # include "stubRoutines_zero.hpp"
 #elif defined TARGET_ARCH_MODEL_ppc_64
 # include "stubRoutines_ppc_64.hpp"
+#elif defined TARGET_ARCH_MODEL_riscv64
+# include "stubRoutines_riscv64.hpp"
 #endif
 
   static jint    _verify_oop_count;
