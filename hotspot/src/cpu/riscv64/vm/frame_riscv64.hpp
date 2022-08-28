@@ -205,6 +205,6 @@
   // deoptimization support
   void interpreter_frame_set_last_sp(intptr_t* ptr_sp);
 
-  static jint interpreter_frame_expression_stack_direction() { return -1; }
+ // static jint interpreter_frame_expression_stack_direction() { return -1; }
 
 #endif // CPU_RISCV64_VM_FRAME_RISCV64_HPP
