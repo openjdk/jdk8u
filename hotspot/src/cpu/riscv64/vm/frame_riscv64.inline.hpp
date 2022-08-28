@@ -254,5 +254,5 @@ inline void frame::set_saved_oop_result(RegisterMap* map, oop obj) {
     ShouldNotReachHere();
   }
 }
-
+inline jint frame::interpreter_frame_expression_stack_direction() { return -1; }
 #endif // CPU_RISCV64_VM_FRAME_RISCV64_INLINE_HPP
