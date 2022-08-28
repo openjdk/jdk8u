@@ -131,6 +131,9 @@
 #ifdef TARGET_OS_ARCH_linux_aarch64
 # include "vmStructs_linux_aarch64.hpp"
 #endif
+#ifdef TARGET_OS_ARCH_linux_riscv64
+# include "vmStructs_linux_riscv64.hpp"
+#endif
 #ifdef TARGET_OS_ARCH_linux_sparc
 # include "vmStructs_linux_sparc.hpp"
 #endif

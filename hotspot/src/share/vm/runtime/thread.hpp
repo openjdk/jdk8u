@@ -1712,6 +1712,9 @@ public:
 #ifdef TARGET_OS_ARCH_linux_aarch64
 # include "thread_linux_aarch64.hpp"
 #endif
+#ifdef TARGET_OS_ARCH_linux_riscv64
+# include "thread_linux_riscv64.hpp"
+#endif
 #ifdef TARGET_OS_ARCH_linux_sparc
 # include "thread_linux_sparc.hpp"
 #endif
