@@ -27,15 +27,27 @@
 #ifndef CPU_RISCV64_VM_VMREG_RISCV64_INLINE_HPP
 #define CPU_RISCV64_VM_VMREG_RISCV64_INLINE_HPP
 
-inline VMReg RegisterImpl::as_VMReg() {
-  if( this == noreg ) {
-    return VMRegImpl::Bad();
-  }
-  return VMRegImpl::as_VMReg(encoding() << 1);
+inline bool is_Register() {
+  return (unsigned int) value() < (unsigned int) ConcreteRegisterImpl::max_gpr;
 }
 
-inline VMReg FloatRegisterImpl::as_VMReg() {
-  return VMRegImpl::as_VMReg((encoding() << 1) + ConcreteRegisterImpl::max_gpr);
+inline bool is_FloatRegister() {
+  return value() >= ConcreteRegisterImpl::max_gpr && value() < ConcreteRegisterImpl::max_fpr;
 }
 
-#endif // CPU_RISCV64_VM_VMREG_RISCV64_INLINE_HPP
+inline Register as_Register() {
+  assert( is_Register(), "must be");
+  return ::as_Register(value() >> 1);
+}
+
+inline FloatRegister as_FloatRegister() {
+  assert( is_FloatRegister() && is_even(value()), "must be" );
+  return ::as_FloatRegister((value() - ConcreteRegisterImpl::max_gpr) >> 1);
+}
+
+inline bool is_concrete() {
+  assert(is_reg(), "must be");
+  return is_even(value());
+}
+
+#endif // CPU_RISCV64_VM_VMREG_RISCV64_HPP
