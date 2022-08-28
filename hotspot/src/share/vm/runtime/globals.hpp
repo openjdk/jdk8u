@@ -79,6 +79,9 @@
 #ifdef TARGET_OS_ARCH_linux_aarch64
 # include "globals_linux_aarch64.hpp"
 #endif
+#ifdef TARGET_OS_ARCH_linux_riscv64
+# include "globals_linux_riscv64.hpp"
+#endif
 #ifdef TARGET_OS_ARCH_linux_sparc
 # include "globals_linux_sparc.hpp"
 #endif

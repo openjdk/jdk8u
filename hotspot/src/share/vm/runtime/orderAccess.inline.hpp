@@ -44,6 +44,9 @@
 #ifdef TARGET_OS_ARCH_linux_aarch64
 # include "orderAccess_linux_aarch64.inline.hpp"
 #endif
+#ifdef TARGET_OS_ARCH_linux_riscv64
+# include "orderAccess_linux_riscv64.inline.hpp"
+#endif
 #ifdef TARGET_OS_ARCH_linux_ppc
 # include "orderAccess_linux_ppc.inline.hpp"
 #endif
