@@ -46,7 +46,8 @@
 # include "adfiles/adGlobals_zero.hpp"
 #elif defined TARGET_ARCH_MODEL_ppc_64
 # include "adfiles/adGlobals_ppc_64.hpp"
-#endif
+#elif defined TARGET_ARCH_MODEL_riscv64
+# include "adfiles/adGlobals_riscv64.hpp"
 #endif
 
 //------------------------------VMReg------------------------------------------
