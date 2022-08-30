@@ -228,7 +228,7 @@ bool frame::safe_for_sender(JavaThread *thread) {
       return jcw_safe;
     }
 
-    CompiledMethod* nm = sender_blob->as_compiled_method_or_null();
+    nmethod* nm = sender_blob->as_nmethod_or_null();
     if (nm != NULL) {
       if (nm->is_deopt_mh_entry(sender_pc) || nm->is_deopt_entry(sender_pc) ||
           nm->method()->is_method_handle_intrinsic()) {
@@ -287,7 +287,7 @@ void frame::patch_pc(Thread* thread, address pc) {
   assert(_pc == *pc_addr || pc == *pc_addr, "must be");
   *pc_addr = pc;
   _cb = CodeCache::find_blob(pc);
-  address original_pc = CompiledMethod::get_deopt_original_pc(this);
+  address original_pc = nmethod::get_deopt_original_pc(this);
   if (original_pc != NULL) {
     assert(original_pc == _pc, "expected original PC to be stored before patching");
     _deopt_state = is_deoptimized;
@@ -364,7 +364,7 @@ frame frame::sender_for_entry_frame(RegisterMap* map) const {
   }
   map->clear();
   assert(map->include_argument_oops(), "should be set by clear");
-  vmassert(jfa->last_Java_pc() != NULL, "not walkable");
+  assert(jfa->last_Java_pc() != NULL, "not walkable");
   frame fr(jfa->last_Java_sp(), jfa->last_Java_fp(), jfa->last_Java_pc());
   return fr;
 }
@@ -375,7 +375,7 @@ frame frame::sender_for_entry_frame(RegisterMap* map) const {
 // Verifies the calculated original PC of a deoptimization PC for the
 // given unextended SP.
 #ifdef ASSERT
-void frame::verify_deopt_original_pc(CompiledMethod* nm, intptr_t* unextended_sp) {
+void frame::verify_deopt_original_pc(nmethod* nm, intptr_t* unextended_sp) {
   frame fr;
 
   // This is ugly but it's better than to change {get,set}_original_pc
@@ -398,7 +398,7 @@ void frame::adjust_unextended_sp() {
   // returning to any of these call sites.
 
   if (_cb != NULL) {
-    CompiledMethod* sender_cm = _cb->as_compiled_method_or_null();
+    nmethod* sender_cm = _cb->as_nmethod_or_null();
     if (sender_cm != NULL) {
       // If the sender PC is a deoptimization point, get the original PC.
       if (sender_cm->is_deopt_entry(_pc) ||
@@ -558,7 +558,7 @@ bool frame::is_interpreted_frame_valid(JavaThread* thread) const {
 
   // validate constantPoolCache*
   ConstantPoolCache* cp = *interpreter_frame_cache_addr();
-  if (MetaspaceObj::is_valid(cp) == false) {
+  if (cp == NULL || !cp->is_metaspace_object()) {
     return false;
   }
   // validate locals
@@ -679,15 +679,15 @@ void JavaFrameAnchor::make_walkable(JavaThread* thread) {
   if (last_Java_sp() == NULL) { return; }
   // already walkable?
   if (walkable()) { return; }
-  vmassert(Thread::current() == (Thread*)thread, "not current thread");
-  vmassert(last_Java_sp() != NULL, "not called from Java code?");
-  vmassert(last_Java_pc() == NULL, "already walkable");
+  assert(Thread::current() == (Thread*)thread, "not current thread");
+  assert(last_Java_sp() != NULL, "not called from Java code?");
+  assert(last_Java_pc() == NULL, "already walkable");
   capture_last_Java_pc();
-  vmassert(walkable(), "something went wrong");
+  assert(walkable(), "something went wrong");
 }
 
 void JavaFrameAnchor::capture_last_Java_pc() {
-  vmassert(_last_Java_sp != NULL, "no last frame set");
-  vmassert(_last_Java_pc == NULL, "already walkable");
+  assert(_last_Java_sp != NULL, "no last frame set");
+  assert(_last_Java_pc == NULL, "already walkable");
   _last_Java_pc = (address)_last_Java_sp[-1];
 }
