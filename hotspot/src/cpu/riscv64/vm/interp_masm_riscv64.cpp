@@ -26,12 +26,12 @@
 
 #include "precompiled.hpp"
 #include "asm/macroAssembler.inline.hpp"
-#include "gc/shared/barrierSet.hpp"
-#include "gc/shared/barrierSetAssembler.hpp"
+//#include "gc/shared/barrierSet.hpp"
+//#include "gc/shared/barrierSetAssembler.hpp"
 #include "interp_masm_riscv64.hpp"
 #include "interpreter/interpreter.hpp"
 #include "interpreter/interpreterRuntime.hpp"
-#include "logging/log.hpp"
+//#include "logging/log.hpp"
 #include "oops/arrayOop.hpp"
 #include "oops/markOop.hpp"
 #include "oops/method.hpp"
@@ -41,7 +41,7 @@
 #include "runtime/basicLock.hpp"
 #include "runtime/biasedLocking.hpp"
 #include "runtime/frame.inline.hpp"
-#include "runtime/safepointMechanism.hpp"
+//#include "runtime/safepointMechanism.hpp"
 #include "runtime/sharedRuntime.hpp"
 #include "runtime/thread.inline.hpp"
 
@@ -510,12 +510,12 @@ void InterpreterMacroAssembler::dispatch_base(TosState state,
   bool needs_thread_local_poll = generate_poll &&
     SafepointMechanism::uses_thread_local_poll() && table != safepoint_table;
 
-  if (needs_thread_local_poll) {
+  /*if (needs_thread_local_poll) {
     NOT_PRODUCT(block_comment("Thread-local Safepoint poll"));
     ld(t1, Address(xthread, Thread::polling_page_offset()));
     andi(t1, t1, 1 << exact_log2(SafepointMechanism::poll_bit()));
     bnez(t1, safepoint);
-  }
+  }*/
   if (table == Interpreter::dispatch_table(state)) {
     li(t1, Interpreter::distance_from_dispatch_table(state));
     add(t1, Rs, t1);
@@ -716,7 +716,7 @@ void InterpreterMacroAssembler::remove_activation(
   // get sender esp
   ld(esp,
      Address(fp, frame::interpreter_frame_sender_sp_offset * wordSize));
-  if (StackReservedPages > 0) {
+  /*if (StackReservedPages > 0) {
     // testing if reserved zone needs to be re-enabled
     Label no_reserved_zone_enabling;
 
@@ -730,7 +730,7 @@ void InterpreterMacroAssembler::remove_activation(
     should_not_reach_here();
 
     bind(no_reserved_zone_enabling);
-  }
+  }*/
   // remove frame anchor
   leave();
   // If we're returning to interpreted code we will shortly be
@@ -902,7 +902,7 @@ void InterpreterMacroAssembler::unlock_object(Register lock_reg)
 void InterpreterMacroAssembler::test_method_data_pointer(Register mdp,
                                                          Label& zero_continue) {
   assert(ProfileInterpreter, "must be profiling interpreter");
-  ld(mdp, Address(fp, frame::interpreter_frame_mdp_offset * wordSize));
+  ld(mdp, Address(fp, frame::interpreter_frame_mdx_offset * wordSize));
   beqz(mdp, zero_continue);
 }
 
@@ -921,7 +921,7 @@ void InterpreterMacroAssembler::set_method_data_pointer_for_bcp() {
   ld(x11, Address(xmethod, in_bytes(Method::method_data_offset())));
   la(x11, Address(x11, in_bytes(MethodData::data_offset())));
   add(x10, x11, x10);
-  sd(x10, Address(fp, frame::interpreter_frame_mdp_offset * wordSize));
+  sd(x10, Address(fp, frame::interpreter_frame_mdx_offset * wordSize));
   bind(set_mdp);
   pop_reg(0xc00, sp);
 }
@@ -1046,7 +1046,7 @@ void InterpreterMacroAssembler::update_mdp_by_offset(Register mdp_in,
   assert(ProfileInterpreter, "must be profiling interpreter");
   ld(t1, Address(mdp_in, offset_of_disp));
   add(mdp_in, mdp_in, t1);
-  sd(mdp_in, Address(fp, frame::interpreter_frame_mdp_offset * wordSize));
+  sd(mdp_in, Address(fp, frame::interpreter_frame_mdx_offset * wordSize));
 }
 
 void InterpreterMacroAssembler::update_mdp_by_offset(Register mdp_in,
@@ -1056,7 +1056,7 @@ void InterpreterMacroAssembler::update_mdp_by_offset(Register mdp_in,
   add(t1, mdp_in, reg);
   ld(t1, Address(t1, offset_of_disp));
   add(mdp_in, mdp_in, t1);
-  sd(mdp_in, Address(fp, frame::interpreter_frame_mdp_offset * wordSize));
+  sd(mdp_in, Address(fp, frame::interpreter_frame_mdx_offset * wordSize));
 }
 
 
@@ -1064,7 +1064,7 @@ void InterpreterMacroAssembler::update_mdp_by_constant(Register mdp_in,
                                                        int constant) {
   assert(ProfileInterpreter, "must be profiling interpreter");
   addi(mdp_in, mdp_in, constant);
-  sd(mdp_in, Address(fp, frame::interpreter_frame_mdp_offset * wordSize));
+  sd(mdp_in, Address(fp, frame::interpreter_frame_mdx_offset * wordSize));
 }
 
 
