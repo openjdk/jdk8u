@@ -34,10 +34,11 @@
 // (see globals.hpp)
 
 define_pd_global(bool, NeedsDeoptSuspend,        false); // only register window machines need this
-
+define_pd_global(bool, ConvertSleepToYield,      true);
 define_pd_global(bool, ImplicitNullChecks,       true);  // Generate code for implicit null checks
 define_pd_global(bool, TrapBasedNullChecks,      false);
 define_pd_global(bool, UncommonNullCast,         true);  // Uncommon-trap NULLs past to check cast
+define_pd_global(intx, PreInflateSpin,           10);
 
 define_pd_global(uintx, CodeCacheSegmentSize,    64 TIERED_ONLY(+64)); // Tiered compilation has large code-entry alignment.
 define_pd_global(intx, CodeEntryAlignment,       64);
