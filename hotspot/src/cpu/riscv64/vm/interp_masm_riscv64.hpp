@@ -67,11 +67,11 @@ class InterpreterMacroAssembler: public MacroAssembler {
 
   // Interpreter-specific registers
   void save_bcp() {
-    sd(xbcp, Address(fp, frame::interpreter_frame_bcp_offset * wordSize));
+    sd(xbcp, Address(fp, frame::interpreter_frame_bcx_offset * wordSize));
   }
 
   void restore_bcp() {
-    ld(xbcp, Address(fp, frame::interpreter_frame_bcp_offset * wordSize));
+    ld(xbcp, Address(fp, frame::interpreter_frame_bcx_offset * wordSize));
   }
 
   void restore_locals() {
