@@ -255,7 +255,7 @@ class Thread: public ThreadShadow {
   friend class Pause_No_Safepoint_Verifier;
   friend class ThreadLocalStorage;
   friend class GC_locker;
-
+  volatile void* _polling_page;                 // Thread local polling page
   ThreadLocalAllocBuffer _tlab;                 // Thread-local eden
   jlong _allocated_bytes;                       // Cumulative number of bytes allocated on
                                                 // the Java heap
@@ -613,7 +613,7 @@ protected:
 
   static ByteSize stack_base_offset()            { return byte_offset_of(Thread, _stack_base ); }
   static ByteSize stack_size_offset()            { return byte_offset_of(Thread, _stack_size ); }
-
+  static ByteSize polling_page_offset()          { return byte_offset_of(Thread, _polling_page); }
 #define TLAB_FIELD_OFFSET(name) \
   static ByteSize tlab_##name##_offset()         { return byte_offset_of(Thread, _tlab) + ThreadLocalAllocBuffer::name##_offset(); }
 
@@ -905,7 +905,8 @@ class JavaThread: public Thread {
   enum StackGuardState {
     stack_guard_unused,         // not needed
     stack_guard_yellow_disabled,// disabled (temporarily) after stack overflow
-    stack_guard_enabled         // enabled
+    stack_guard_enabled,         // enabled
+    stack_guard_yellow_reserved_disabled,// disabled (temporarily) after stack overflo
   };
 
  private:
@@ -915,7 +916,7 @@ class JavaThread: public Thread {
   // Precompute the limit of the stack as used in stack overflow checks.
   // We load it from here to simplify the stack overflow check in assembly.
   address          _stack_overflow_limit;
-
+  address          _reserved_stack_activation;
   // Compiler exception handling (NOTE: The _exception_oop is *NOT* the same as _pending_exception. It is
   // used to temp. parsing values into and out of the runtime system during exception handling for compiled
   // code)
@@ -1303,7 +1304,11 @@ class JavaThread: public Thread {
     { return (a <= stack_yellow_zone_base()) && (a >= stack_red_zone_base()); }
   bool in_stack_red_zone(address a)
     { return (a <= stack_red_zone_base()) && (a >= (address)((intptr_t)stack_base() - stack_size())); }
-
+  static size_t _stack_shadow_zone_size;
+  static size_t stack_shadow_zone_size() {
+    assert(_stack_shadow_zone_size > 0, "Don't call this before the field is initialized.");
+    return _stack_shadow_zone_size;
+  }
   void create_stack_guard_pages();
   void remove_stack_guard_pages();
 
@@ -1373,12 +1378,14 @@ class JavaThread: public Thread {
   static ByteSize is_method_handle_return_offset() { return byte_offset_of(JavaThread, _is_method_handle_return); }
   static ByteSize stack_guard_state_offset()     { return byte_offset_of(JavaThread, _stack_guard_state   ); }
   static ByteSize suspend_flags_offset()         { return byte_offset_of(JavaThread, _suspend_flags       ); }
-
+  static ByteSize reserved_stack_activation_offset() { return byte_offset_of(JavaThread, _reserved_stack_activation); }
   static ByteSize do_not_unlock_if_synchronized_offset() { return byte_offset_of(JavaThread, _do_not_unlock_if_synchronized); }
   static ByteSize should_post_on_exceptions_flag_offset() {
     return byte_offset_of(JavaThread, _should_post_on_exceptions_flag);
   }
-
+  static ByteSize pending_jni_exception_check_fn_offset() {
+    return byte_offset_of(JavaThread, _pending_jni_exception_check_fn);
+  }
 #if INCLUDE_ALL_GCS
   static ByteSize satb_mark_queue_offset()       { return byte_offset_of(JavaThread, _satb_mark_queue); }
   static ByteSize dirty_card_queue_offset()      { return byte_offset_of(JavaThread, _dirty_card_queue); }

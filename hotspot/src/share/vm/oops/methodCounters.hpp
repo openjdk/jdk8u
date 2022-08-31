@@ -128,6 +128,12 @@ class MethodCounters: public MetaspaceObj {
   static int interpreter_invocation_counter_offset_in_bytes() {
     return offset_of(MethodCounters, _interpreter_invocation_count);
   }
-
+  static ByteSize interpreter_profile_limit_offset() {
+    return byte_offset_of(MethodCounters, _interpreter_profile_limit);
+  }
+ 
+  static ByteSize interpreter_invocation_limit_offset() {
+    return byte_offset_of(MethodCounters, _interpreter_invocation_limit);
+  }
 };
 #endif //SHARE_VM_OOPS_METHODCOUNTERS_HPP
