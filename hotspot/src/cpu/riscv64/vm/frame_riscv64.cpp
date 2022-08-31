@@ -59,8 +59,9 @@ bool frame::safe_for_sender(JavaThread *thread) {
   address   unextended_sp = (address)_unextended_sp;
 
   // consider stack guards when trying to determine "safe" stack pointers
-  static size_t stack_guard_size = os::uses_stack_guard_pages() ?
-    (JavaThread::stack_red_zone_size() + JavaThread::stack_yellow_zone_size()) : 0;
+  //static size_t stack_guard_size = os::uses_stack_guard_pages() ?
+  //  (JavaThread::stack_red_zone_size() + JavaThread::stack_yellow_zone_size()) : 0;
+  static size_t stack_guard_size = os::uses_stack_guard_pages() ? (StackYellowPages + StackRedPages) * os::vm_page_size() : 0;
   assert_cond(thread != NULL);
   size_t usable_stack_size = thread->stack_size() - stack_guard_size;
 
@@ -240,7 +241,7 @@ bool frame::safe_for_sender(JavaThread *thread) {
     // because the return address counts against the callee's frame.
 
     if (sender_blob->frame_size() <= 0) {
-      assert(!sender_blob->is_compiled(), "should count return address at least");
+      assert(!sender_blob->is_nmethod(), "should count return address at least");
       return false;
     }
 
@@ -249,7 +250,7 @@ bool frame::safe_for_sender(JavaThread *thread) {
     // should not be anything but the call stub (already covered), the interpreter (already covered)
     // or an nmethod.
 
-    if (!sender_blob->is_compiled()) {
+    if (!sender_blob->is_nmethod()) {
         return false;
     }
 
@@ -551,8 +552,8 @@ bool frame::is_interpreted_frame_valid(JavaThread* thread) const {
   }
 
   // validate bci/bcx
-  address  bcp    = interpreter_frame_bcp();
-  if (m->validate_bci_from_bcp(bcp) < 0) {
+  address  bcp    = interpreter_frame_bcx();
+  if (m->validate_bci_from_bcx(bcp) < 0) {
     return false;
   }
 

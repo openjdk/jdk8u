@@ -44,7 +44,7 @@ inline frame::frame() {
 }
 
 static int spin;
-oop* interpreter_frame_mirror_addr() const;
+//oop* interpreter_frame_mirror_addr() const;
 inline void frame::init(intptr_t* ptr_sp, intptr_t* ptr_fp, address pc) {
   intptr_t a = intptr_t(ptr_sp);
   intptr_t b = intptr_t(ptr_fp);
@@ -56,7 +56,7 @@ inline void frame::init(intptr_t* ptr_sp, intptr_t* ptr_fp, address pc) {
   _cb = CodeCache::find_blob(pc);
   adjust_unextended_sp();
 
-  address original_pc = CompiledMethod::get_deopt_original_pc(this);
+  address original_pc = nmethod::get_deopt_original_pc(this);
   if (original_pc != NULL) {
     _pc = original_pc;
     _deopt_state = is_deoptimized;
@@ -80,7 +80,7 @@ inline frame::frame(intptr_t* ptr_sp, intptr_t* unextended_sp, intptr_t* ptr_fp,
   _cb = CodeCache::find_blob(pc);
   adjust_unextended_sp();
 
-  address original_pc = CompiledMethod::get_deopt_original_pc(this);
+  address original_pc = nmethod::get_deopt_original_pc(this);
   if (original_pc != NULL) {
     _pc = original_pc;
     assert(_cb->as_compiled_method()->insts_contains_inclusive(_pc),
