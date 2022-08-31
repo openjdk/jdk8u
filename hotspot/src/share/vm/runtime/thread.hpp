@@ -1364,7 +1364,7 @@ class JavaThread: public Thread {
   static ByteSize vm_result_offset()             { return byte_offset_of(JavaThread, _vm_result           ); }
   static ByteSize vm_result_2_offset()           { return byte_offset_of(JavaThread, _vm_result_2         ); }
   static ByteSize thread_state_offset()          { return byte_offset_of(JavaThread, _thread_state        ); }
-  static ByteSize saved_exception_pc_offset()    { return byte_offset_of(JavaThread, _saved_exception_pc  ); }
+  static ByteSize saved_exception_Ppc_offset()    { return byte_offset_of(JavaThread, _saved_exception_pc  ); }
   static ByteSize osthread_offset()              { return byte_offset_of(JavaThread, _osthread            ); }
   static ByteSize exception_oop_offset()         { return byte_offset_of(JavaThread, _exception_oop       ); }
   static ByteSize exception_pc_offset()          { return byte_offset_of(JavaThread, _exception_pc        ); }
