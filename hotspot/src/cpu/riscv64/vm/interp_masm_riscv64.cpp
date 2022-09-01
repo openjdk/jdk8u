@@ -31,7 +31,7 @@
 #include "interp_masm_riscv64.hpp"
 #include "interpreter/interpreter.hpp"
 #include "interpreter/interpreterRuntime.hpp"
-//#include "logging/log.hpp"
+#include "log_riscv64/log.hpp"
 #include "oops/arrayOop.hpp"
 #include "oops/markOop.hpp"
 #include "oops/method.hpp"
