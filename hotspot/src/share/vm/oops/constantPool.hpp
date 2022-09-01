@@ -96,7 +96,7 @@ class ConstantPool : public Metadata {
   ConstantPoolCache*   _cache;       // the cache holding interpreter runtime information
   InstanceKlass*       _pool_holder; // the corresponding class
   Array<u2>*           _operands;    // for variable-sized (InvokeDynamic) nodes, usually empty
-
+  Array<Klass*>*       _resolved_klasses;
   // Array of resolved objects from the constant pool and map from resolved
   // object index to original constant pool index
   jobject              _resolved_references;
@@ -239,7 +239,7 @@ class ConstantPool : public Metadata {
   static int cache_offset_in_bytes()        { return offset_of(ConstantPool, _cache); }
   static int pool_holder_offset_in_bytes()  { return offset_of(ConstantPool, _pool_holder); }
   static int resolved_references_offset_in_bytes() { return offset_of(ConstantPool, _resolved_references); }
-
+  static int resolved_klasses_offset_in_bytes()    { return offset_of(ConstantPool, _resolved_klasses);}
   // Storing constants
 
   void klass_at_put(int which, Klass* k) {
