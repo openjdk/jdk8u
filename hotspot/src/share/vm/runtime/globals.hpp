@@ -2655,7 +2655,7 @@ class CommandLineFlags {
                                                                             \
   diagnostic(bool, LogTouchedMethods, false,                                \
           "Log methods which have been ever touched in runtime")            \
-                                                                            \                                                                            \
+                                                                            \
   develop(bool, TraceMethodReplacement, false,                              \
           "Print when methods are replaced do to recompilation")            \
                                                                             \
