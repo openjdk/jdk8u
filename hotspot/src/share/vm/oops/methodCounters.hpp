@@ -36,7 +36,7 @@ class MethodCounters: public MetaspaceObj {
   u2                _number_of_breakpoints;      // fullspeed debugging support
   InvocationCounter _invocation_counter;         // Incremented before each activation of the method - used to trigger frequency-based optimizations
   InvocationCounter _backedge_counter;           // Incremented before each backedge taken - used to trigger frequencey-based optimizations
-
+  int               _interpreter_profile_limit;           // per-method InterpreterProfileLimit
 #ifdef TIERED
   float             _rate;                        // Events (invocation and backedge counter increments) per millisecond
   u1                _highest_comp_level;          // Highest compile level this method has ever seen.
