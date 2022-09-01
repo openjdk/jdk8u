@@ -112,7 +112,7 @@ inline frame::frame(intptr_t* ptr_sp, intptr_t* ptr_fp) {
   _cb = CodeCache::find_blob(_pc);
   adjust_unextended_sp();
 
-  address original_pc = nmetod::get_deopt_original_pc(this);
+  address original_pc = nmethod::get_deopt_original_pc(this);
   if (original_pc != NULL) {
     _pc = original_pc;
     _deopt_state = is_deoptimized;
