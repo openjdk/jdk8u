@@ -321,7 +321,7 @@ class frame VALUE_OBJ_CLASS_SPEC {
 
   // Address of the temp oop in the frame. Needed as GC root.
   oop* interpreter_frame_temp_oop_addr() const;
-
+  oop* interpreter_frame_mirror_addr() const;
   // BasicObjectLocks:
   //
   // interpreter_frame_monitor_begin is higher in memory than interpreter_frame_monitor_end
