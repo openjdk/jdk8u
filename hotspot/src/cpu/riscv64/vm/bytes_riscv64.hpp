@@ -38,7 +38,7 @@ class Bytes: AllStatic {
   static inline u2 swap_u2(u2 x);
   static inline u4 swap_u4(u4 x);
   static inline u8 swap_u8(u8 x);
-
+  static inline bool is_Java_byte_ordering_different(){ return true; }
   static inline u2 get_native_u2(address p) {
     if ((intptr_t(p) & 1) == 0) {
       return *(u2*)p;
