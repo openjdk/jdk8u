@@ -35,7 +35,7 @@
 #include "oops/oop.inline.hpp"
 #include "runtime/handles.inline.hpp"
 #include "runtime/icache.hpp"
-#include "runtime/interfaceSupport.inline.hpp"
+//#include "runtime/interfaceSupport.inline.hpp"
 #include "runtime/signature.hpp"
 
 #define __ _masm->
