@@ -101,6 +101,7 @@ class InterpreterRuntime: AllStatic {
   static void    create_exception(JavaThread* thread, char* name, char* message);
   static void    create_klass_exception(JavaThread* thread, char* name, oopDesc* obj);
   static address exception_handler_for_exception(JavaThread* thread, oopDesc* exception);
+  static void    throw_delayed_StackOverflowError(JavaThread* thread);
 #if INCLUDE_JVMTI
   static void    member_name_arg_or_null(JavaThread* thread, address dmh, Method* m, address bcp);
 #endif

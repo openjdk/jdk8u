@@ -176,7 +176,7 @@ class vtableEntry VALUE_OBJ_CLASS_SPEC {
   }
   static int method_offset_in_bytes() { return offset_of(vtableEntry, _method); }
   Method* method() const    { return _method; }
-
+  static int size_in_bytes() { return sizeof(vtableEntry); }
  private:
   Method* _method;
   void set(Method* method)  { assert(method != NULL, "use clear"); _method = method; }

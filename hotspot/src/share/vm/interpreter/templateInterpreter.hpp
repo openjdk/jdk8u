@@ -175,7 +175,7 @@ class TemplateInterpreter: public AbstractInterpreter {
   // Safepoint support
   static void       notice_safepoints();                        // stops the thread when reaching a safepoint
   static void       ignore_safepoints();                        // ignores safepoints
-
+  static address*   safept_table(TosState state)                { return _safept_table.table_for(state); }
   // Deoptimization support
   // Compute the entry address for continuation after
   static address deopt_continue_after_entry(Method* method,
@@ -186,6 +186,7 @@ class TemplateInterpreter: public AbstractInterpreter {
   static bool    bytecode_should_reexecute(Bytecodes::Code code);
   // Compute the address for reexecution
   static address deopt_reexecute_entry(Method* method, address bcp);
+  static int InterpreterCodeSize;
 
 #ifdef TARGET_ARCH_x86
 # include "templateInterpreter_x86.hpp"
