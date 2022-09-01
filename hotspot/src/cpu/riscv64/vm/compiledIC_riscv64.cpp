@@ -83,7 +83,7 @@ int CompiledStaticCall::reloc_to_interp_stub() {
   return 4; // 3 in emit_to_interp_stub + 1 in emit_call
 }
 
-void CompiledStaticCall::set_to_interpreted( methodHandle& callee, address entry) {
+void CompiledStaticCall::set_to_interpreted( methodHandleg callee, address entry) {
   address stub = find_stub();
   guarantee(stub != NULL, "stub not found");
 
