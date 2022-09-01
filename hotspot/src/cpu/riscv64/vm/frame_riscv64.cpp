@@ -552,7 +552,7 @@ bool frame::is_interpreted_frame_valid(JavaThread* thread) const {
   }
 
   // validate bci/bcx
-  address  bcp    = interpreter_frame_bcx();
+  intptr_t  bcp    = interpreter_frame_bcx();
   if (m->validate_bci_from_bcx(bcp) < 0) {
     return false;
   }
