@@ -26,10 +26,10 @@
 
 #include "precompiled.hpp"
 #include "asm/macroAssembler.inline.hpp"
-#include "gc/shared/barrierSetAssembler.hpp"
+#include "barrierSetAssembler_riscv64.hpp"
 #include "interpreter/bytecodeHistogram.hpp"
 #include "interpreter/bytecodeTracer.hpp"
-#include "interpreter/interp_masm.hpp"
+//#include "interpreter/interp_masm.hpp"
 #include "interpreter/interpreter.hpp"
 #include "interpreter/interpreterRuntime.hpp"
 #include "interpreter/templateInterpreterGenerator.hpp"
@@ -911,7 +911,7 @@ address TemplateInterpreterGenerator::generate_Reference_get_entry(void) {
 
   // Load the value of the referent field.
   const Address field_address(local_0, referent_offset);
-  BarrierSetAssembler *bs = BarrierSet::barrier_set()->barrier_set_assembler();
+  BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
   bs->load_at(_masm, IN_HEAP | ON_WEAK_OOP_REF, T_OBJECT, local_0, field_address, /*tmp1*/ t1, /*tmp2*/ t0);
 
   // areturn

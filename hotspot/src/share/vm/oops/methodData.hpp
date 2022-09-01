@@ -2448,7 +2448,9 @@ public:
   static ByteSize backedge_counter_offset() {
     return byte_offset_of(MethodData, _backedge_counter);
   }
-
+  static ByteSize invoke_mask_offset() {
+    return byte_offset_of(MethodData, _invoke_mask);
+  }
   static ByteSize parameters_type_data_di_offset() {
     return byte_offset_of(MethodData, _parameters_type_data_di);
   }
