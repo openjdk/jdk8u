@@ -28,7 +28,7 @@
 #define CPU_RISCV64_VM_MACROASSEMBLER_RISCV64_HPP
 
 #include "asm/assembler.hpp"
-
+#include "accessDecorators_riscv64.hpp"
 // MacroAssembler extends Assembler by frequently used macros.
 //
 // Instructions for which a 'better' code sequence exists depending
