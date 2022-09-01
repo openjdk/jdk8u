@@ -2095,6 +2095,7 @@ private:
   // Counter values at the time profiling started.
   int               _invocation_counter_start;
   int               _backedge_counter_start;
+  int               _invoke_mask;      // per-method Tier0InvokeNotifyFreqLog
 
 #if INCLUDE_RTM_OPT
   // State of RTM code generation during compilation of the method
