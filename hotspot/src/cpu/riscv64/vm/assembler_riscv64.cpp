@@ -32,7 +32,7 @@
 #include "compiler/disassembler.hpp"
 #include "interpreter/interpreter.hpp"
 #include "memory/resourceArea.hpp"
-#include "runtime/interfaceSupport.inline.hpp"
+//#include "runtime/interfaceSupport.inline.hpp"
 #include "runtime/sharedRuntime.hpp"
 
 extern "C" void test_assembler_entry(CodeBuffer *cb);
