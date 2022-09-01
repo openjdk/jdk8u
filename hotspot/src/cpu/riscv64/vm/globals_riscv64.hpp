@@ -29,6 +29,7 @@
 
 #include "utilities/globalDefinitions.hpp"
 #include "utilities/macros.hpp"
+#include "memory/allocation.hpp"
 
 // Sets the default values for platform dependent flags used by the runtime system.
 // (see globals.hpp)
@@ -88,10 +89,7 @@ define_pd_global(intx, InlineSmallCode,          1000);
                    product,                                             \
                    diagnostic,                                          \
                    experimental,                                        \
-                   notproduct,                                          \
-                   range,                                               \
-                   constraint,                                          \
-                   writeable)                                           \
+                   notproduct)                                          \
                                                                         \
   product(bool, NearCpool, true,                                        \
          "constant pool is close to instructions")                      \
@@ -107,7 +105,6 @@ define_pd_global(intx, InlineSmallCode,          1000);
           "Use DC ZVA for block zeroing")                               \
   product(intx, BlockZeroingLowLimit, 256,                              \
           "Minimum size in bytes when block zeroing will be used")      \
-          range(1, max_jint)                                            \
   product(bool, TraceTraps, false, "Trace all traps the signal handler")\
   product(bool, UseConservativeFence, true,                             \
           "Extend i for r and o for w in the pred/succ flags of fence;" \
