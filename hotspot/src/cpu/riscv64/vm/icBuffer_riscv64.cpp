@@ -28,7 +28,7 @@
 #include "asm/macroAssembler.hpp"
 #include "asm/macroAssembler.inline.hpp"
 #include "code/icBuffer.hpp"
-#include "gc/shared/collectedHeap.inline.hpp"
+#include "gc_interface/collectedHeap.inline.hpp"
 #include "interpreter/bytecodes.hpp"
 #include "memory/resourceArea.hpp"
 #include "nativeInst_riscv64.hpp"

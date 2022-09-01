@@ -41,7 +41,7 @@
 #include "runtime/basicLock.hpp"
 #include "runtime/biasedLocking.hpp"
 #include "runtime/frame.inline.hpp"
-//#include "runtime/safepointMechanism.hpp"
+#include "safepointMechanism_riscv64.hpp"
 #include "runtime/sharedRuntime.hpp"
 #include "runtime/thread.inline.hpp"
 
@@ -1797,7 +1797,7 @@ void InterpreterMacroAssembler::profile_arguments_type(Register mdp, Register ca
         slli(tmp, tmp, exact_log2(DataLayout::cell_size));
         add(mdp, mdp, tmp);
       }
-      sd(mdp, Address(fp, frame::interpreter_frame_mdp_offset * wordSize));
+      sd(mdp, Address(fp, frame::interpreter_frame_mdx_offset * wordSize));
     } else {
       assert(MethodData::profile_return(), "either profile call args or call ret");
       update_mdp_by_constant(mdp, in_bytes(TypeEntriesAtCall::return_only_size()));
