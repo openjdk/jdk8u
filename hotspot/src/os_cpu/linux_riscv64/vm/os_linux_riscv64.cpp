@@ -30,7 +30,7 @@
 #include "classfile/vmSymbols.hpp"
 #include "code/codeCache.hpp"
 #include "code/icBuffer.hpp"
-#include "code/nativeInst.hpp"
+//#include "code/nativeInst.hpp"
 #include "code/vtableStubs.hpp"
 #include "interpreter/interpreter.hpp"
 #include "jvm.h"
@@ -41,7 +41,7 @@
 #include "runtime/arguments.hpp"
 #include "runtime/extendedPC.hpp"
 #include "runtime/frame.inline.hpp"
-#include "runtime/interfaceSupport.inline.hpp"
+//#include "runtime/interfaceSupport.inline.hpp"
 #include "runtime/java.hpp"
 #include "runtime/javaCalls.hpp"
 #include "runtime/mutexLocker.hpp"
@@ -53,6 +53,9 @@
 #include "utilities/debug.hpp"
 #include "utilities/events.hpp"
 #include "utilities/vmError.hpp"
+#include "prims/jvm.h"
+#include "jvm_linux.h"
+#include "mutex_linux.inline.hpp"
 
 // put OS-includes here
 # include <dlfcn.h>
@@ -87,7 +90,7 @@ char* os::non_memory_address_word() {
   return (char*) -1;
 }
 
-address os::Linux::ucontext_get_pc(const ucontext_t * uc) {
+address os::Linux::ucontext_get_pc( ucontext_t * uc) {
   return (address)uc->uc_mcontext.__gregs[REG_PC];
 }
 
@@ -95,21 +98,33 @@ void os::Linux::ucontext_set_pc(ucontext_t * uc, address pc) {
   uc->uc_mcontext.__gregs[REG_PC] = (intptr_t)pc;
 }
 
-intptr_t* os::Linux::ucontext_get_sp(const ucontext_t * uc) {
+intptr_t* os::Linux::ucontext_get_sp( ucontext_t * uc) {
   return (intptr_t*)uc->uc_mcontext.__gregs[REG_SP];
 }
 
-intptr_t* os::Linux::ucontext_get_fp(const ucontext_t * uc) {
+intptr_t* os::Linux::ucontext_get_fp( ucontext_t * uc) {
   return (intptr_t*)uc->uc_mcontext.__gregs[REG_FP];
 }
 
+static address handle_unsafe_access(JavaThread* thread, address pc) {
+  // pc is the instruction which we must emulate
+  // doing a no-op is fine:  return garbage from the load
+  // therefore, compute npc
+  address npc = pc + NativeCall::instruction_size;
+
+  // request an async exception
+  thread->set_pending_unsafe_access_error();
+ 
+  // return address of next instruction to execute
+  return npc;
+}
 // For Forte Analyzer AsyncGetCallTrace profiling support - thread
 // is currently interrupted by SIGPROF.
 // os::Solaris::fetch_frame_from_ucontext() tries to skip nested signal
 // frames. Currently we don't do that on Linux, so it's the same as
 // os::fetch_frame_from_context().
 ExtendedPC os::Linux::fetch_frame_from_ucontext(Thread* thread,
-  const ucontext_t* uc, intptr_t** ret_sp, intptr_t** ret_fp) {
+   ucontext_t* uc, intptr_t** ret_sp, intptr_t** ret_fp) {
 
   assert(thread != NULL, "just checking");
   assert(ret_sp != NULL, "just checking");
@@ -118,11 +133,11 @@ ExtendedPC os::Linux::fetch_frame_from_ucontext(Thread* thread,
   return os::fetch_frame_from_context(uc, ret_sp, ret_fp);
 }
 
-ExtendedPC os::fetch_frame_from_context(const void* ucVoid,
+ExtendedPC os::fetch_frame_from_context( void* ucVoid,
                                         intptr_t** ret_sp, intptr_t** ret_fp) {
 
   ExtendedPC  epc;
-  const ucontext_t* uc = (const ucontext_t*)ucVoid;
+   ucontext_t* uc = ( ucontext_t*)ucVoid;
 
   if (uc != NULL) {
     epc = ExtendedPC(os::Linux::ucontext_get_pc(uc));
@@ -146,7 +161,7 @@ ExtendedPC os::fetch_frame_from_context(const void* ucVoid,
   return epc;
 }
 
-frame os::fetch_frame_from_context(const void* ucVoid) {
+frame os::fetch_frame_from_context( void* ucVoid) {
   intptr_t* frame_sp = NULL;
   intptr_t* frame_fp = NULL;
   ExtendedPC epc = fetch_frame_from_context(ucVoid, &frame_sp, &frame_fp);
@@ -443,10 +458,10 @@ JVM_handle_linux_signal(int sig,
         // here if the underlying file has been truncated.
         // Do not crash the VM in such a case.
         CodeBlob* cb = CodeCache::find_blob_unsafe(pc);
-        CompiledMethod* nm = (cb != NULL) ? cb->as_compiled_method_or_null() : NULL;
+        nmethod* nm = (cb != NULL && cb->is_nmethod()) ? (nmethod*)cb : NULL;
         if (nm != NULL && nm->has_unsafe_access()) {
           address next_pc = pc + NativeCall::instruction_size;
-          stub = SharedRuntime::handle_unsafe_access(thread, next_pc);
+          stub = handle_unsafe_access(thread, next_pc);
         }
       } else if (sig == SIGFPE  &&
           (info->si_code == FPE_INTDIV || info->si_code == FPE_FLTDIV)) {
@@ -465,7 +480,7 @@ JVM_handle_linux_signal(int sig,
                sig == SIGBUS && /* info->si_code == BUS_OBJERR && */
                thread->doing_unsafe_access()) {
       address next_pc = pc + NativeCall::instruction_size;
-      stub = SharedRuntime::handle_unsafe_access(thread, next_pc);
+      stub = handle_unsafe_access(thread, next_pc);
     }
 
     // jni_fast_Get<Primitive>Field can trap at certain pc's if a GC kicks in
@@ -519,7 +534,8 @@ JVM_handle_linux_signal(int sig,
   sigaddset(&newset, sig);
   sigprocmask(SIG_UNBLOCK, &newset, NULL);
 
-  VMError::report_and_die(t, sig, pc, info, ucVoid);
+  VMError err(t, sig, pc, info, ucVoid);
+  err.report_and_die();
 
   ShouldNotReachHere();
   return true; // Mute compiler
@@ -541,17 +557,25 @@ void os::Linux::set_fpu_control_word(int fpu_control) {
 
 // Minimum usable stack sizes required to get to user code. Space for
 // HotSpot guard pages is added later.
-size_t os::Posix::_compiler_thread_min_stack_allowed = 72 * K;
-size_t os::Posix::_java_thread_min_stack_allowed = 72 * K;
-size_t os::Posix::_vm_internal_thread_min_stack_allowed = 72 * K;
+//size_t os::Posix::_compiler_thread_min_stack_allowed = 72 * K;
+//size_t os::Posix::_java_thread_min_stack_allowed = 72 * K;
+//size_t os::Posix::_vm_internal_thread_min_stack_allowed = 72 * K;
+size_t os::Linux::min_stack_allowed  = 64 * K;
+// return default stack size for thr_type
+size_t os::Linux::default_stack_size(os::ThreadType thr_type) {
+   // default stack size (compiler thread needs larger stack)
+   size_t s = (thr_type == os::compiler_thread ? 4 * M : 1 * M);
+   return s;
+ }
+// amd64: pthread on amd64 is always in floating stack mode
+bool os::Linux::supports_variable_stack_size() {  return true; }
 
 // return default stack size for thr_type
-size_t os::Posix::default_stack_size(os::ThreadType thr_type) {
-  // default stack size (compiler thread needs larger stack)
-  size_t s = (thr_type == os::compiler_thread ? 4 * M : 1 * M);
-  return s;
+size_t os::Linux::default_guard_size(os::ThreadType thr_type) {
+  // Creating guard page is very expensive. Java thread has HotSpot
+  // guard page, only enable glibc guard page for non-Java threads.
+  return (thr_type == java_thread ? 0 : page_size());
 }
-
 /////////////////////////////////////////////////////////////////////////////
 // helper functions for fatal error handler
 
@@ -565,12 +589,12 @@ static const char* reg_abi_names[] = {
   "x28(t3)", "x29(t4)","x30(t5)", "x31(t6)"
 };
 
-void os::print_context(outputStream *st, const void *context) {
+void os::print_context(outputStream *st, void *context) {
   if (context == NULL) {
     return;
   }
 
-  const ucontext_t *uc = (const ucontext_t*)context;
+   ucontext_t *uc = ( ucontext_t*)context;
   st->print_cr("Registers:");
   for (int r = 0; r < 32; r++) {
     st->print("%-*.*s=", 8, 8, reg_abi_names[r]);
@@ -591,12 +615,12 @@ void os::print_context(outputStream *st, const void *context) {
   st->cr();
 }
 
-void os::print_register_info(outputStream *st, const void *context) {
+void os::print_register_info(outputStream *st,  void *context) {
   if (context == NULL) {
     return;
   }
 
-  const ucontext_t *uc = (const ucontext_t*)context;
+   ucontext_t *uc = ( ucontext_t*)context;
 
   st->print_cr("Register to memory mapping:");
   st->cr();
@@ -630,7 +654,7 @@ extern "C" {
     return 0;
   }
 
-  void _Copy_conjoint_jshorts_atomic(const jshort* from, jshort* to, size_t count) {
+  void _Copy_conjoint_jshorts_atomic(jshort* from, jshort* to, size_t count) {
     if (from > to) {
       const jshort *end = from + count;
       while (from < end) {
@@ -645,7 +669,7 @@ extern "C" {
       }
     }
   }
-  void _Copy_conjoint_jints_atomic(const jint* from, jint* to, size_t count) {
+  void _Copy_conjoint_jints_atomic(jint* from, jint* to, size_t count) {
     if (from > to) {
       const jint *end = from + count;
       while (from < end) {
@@ -660,7 +684,7 @@ extern "C" {
       }
     }
   }
-  void _Copy_conjoint_jlongs_atomic(const jlong* from, jlong* to, size_t count) {
+  void _Copy_conjoint_jlongs_atomic(jlong* from, jlong* to, size_t count) {
     if (from > to) {
       const jlong *end = from + count;
       while (from < end) {
@@ -676,22 +700,22 @@ extern "C" {
     }
   }
 
-  void _Copy_arrayof_conjoint_bytes(const HeapWord* from,
+  void _Copy_arrayof_conjoint_bytes(HeapWord* from,
                                     HeapWord* to,
                                     size_t    count) {
     memmove(to, from, count);
   }
-  void _Copy_arrayof_conjoint_jshorts(const HeapWord* from,
+  void _Copy_arrayof_conjoint_jshorts(HeapWord* from,
                                       HeapWord* to,
                                       size_t    count) {
     memmove(to, from, count * 2);
   }
-  void _Copy_arrayof_conjoint_jints(const HeapWord* from,
+  void _Copy_arrayof_conjoint_jints(HeapWord* from,
                                     HeapWord* to,
                                     size_t    count) {
     memmove(to, from, count * 4);
   }
-  void _Copy_arrayof_conjoint_jlongs(const HeapWord* from,
+  void _Copy_arrayof_conjoint_jlongs(HeapWord* from,
                                      HeapWord* to,
                                      size_t    count) {
     memmove(to, from, count * 8);
