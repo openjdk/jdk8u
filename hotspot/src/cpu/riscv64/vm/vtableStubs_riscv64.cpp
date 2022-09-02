@@ -142,7 +142,7 @@ VtableStub* VtableStubs::create_vtable_stub(int vtable_index) {
 
 VtableStub* VtableStubs::create_itable_stub(int itable_index) {
   // Read "A word on VtableStub sizing" in share/code/vtableStubs.hpp for details on stub sizing.
-  const int stub_code_length = VtableStub:: (false);
+  const int stub_code_length = VtableStub::pd_code_size_limit(false);
   VtableStub* s = new(stub_code_length) VtableStub(false, itable_index);
   // Can be NULL if there is no free space in the code cache.
   if (s == NULL) {
