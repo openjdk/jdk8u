@@ -25,7 +25,7 @@
 
 #include "memory/allocation.hpp"
 #include "memory/allocation.inline.hpp"
-#include "runtime/os.inline.hpp"
+//#include "runtime/os.inline.hpp"
 #include "vm_version_ext_riscv64.hpp"
 
 // VM_Version_Ext statics
