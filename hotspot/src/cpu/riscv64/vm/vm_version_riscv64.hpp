@@ -34,9 +34,11 @@ class VM_Version : public Abstract_VM_Version {
 public:
   // Initialization
   static void initialize();
+  static const char* cpu_features()           { return _features_str; }
 
 protected:
   static void get_processor_features();
+  static const char* _features_str;
 
 #ifdef COMPILER2
 private:
