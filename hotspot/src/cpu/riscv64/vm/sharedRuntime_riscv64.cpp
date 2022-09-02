@@ -30,16 +30,17 @@
 #include "code/debugInfoRec.hpp"
 #include "code/icBuffer.hpp"
 #include "code/vtableStubs.hpp"
-#include "interpreter/interp_masm.hpp"
+//#include "interpreter/interp_masm.hpp"
 #include "interpreter/interpreter.hpp"
-#include "logging/log.hpp"
+//#include "logging/log.hpp"
 #include "memory/resourceArea.hpp"
 #include "oops/compiledICHolder.hpp"
-#include "runtime/safepointMechanism.hpp"
+#include "safepointMechanism_riscv64.hpp"
 #include "runtime/sharedRuntime.hpp"
 #include "runtime/vframeArray.hpp"
 #include "utilities/align.hpp"
 #include "vmreg_riscv64.inline.hpp"
+#include "prims/jvmtiRedefineClassesTrace.hpp"
 #ifdef COMPILER1
 #include "c1/c1_Runtime1.hpp"
 #endif
@@ -1115,7 +1116,7 @@ static void gen_special_dispatch(MacroAssembler* masm,
   } else if (iid == vmIntrinsics::_invokeBasic) {
     has_receiver = true;
   } else {
-    fatal("unexpected intrinsic id %d", iid);
+    fatal(err_msg_res("unexpected intrinsic id %d", iid));
   }
 
   if (member_reg != noreg) {

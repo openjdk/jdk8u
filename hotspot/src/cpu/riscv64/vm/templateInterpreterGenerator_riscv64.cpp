@@ -477,7 +477,7 @@ address TemplateInterpreterGenerator::generate_return_entry_for(TosState state, 
   return entry;
 }
 
-address TemplateInterpreterGenerator::generate_deopt_entry_for(TosState state,
+address TemplateInterpreterGenerator::generate_deopt_entry_for_rv(TosState state,
                                                                int step,
                                                                address continuation) {
   address entry = __ pc();
@@ -582,7 +582,7 @@ void TemplateInterpreterGenerator::generate_counter_incr(Label* overflow,
                                      MethodCounters::invocation_counter_offset() +
                                      InvocationCounter::counter_offset());
     __ get_method_counters(xmethod, t1, done);
-    const Address mask(t1, in_bytes(MethodCounters::invoke_mask_offset()));
+    const Address mask(t1, in_bytes(MethodData::invoke_mask_offset()));
     __ increment_mask_and_jump(invocation_counter, increment, mask, t0, x11, false, overflow);
     __ bind(done);
   } else { // not TieredCompilation
@@ -821,12 +821,12 @@ void TemplateInterpreterGenerator::generate_fixed_frame(bool native_call) {
   __ sd(ProfileInterpreter ? t0 : zr, Address(sp, 6 * wordSize));
 
   // Get mirror and store it in the frame as GC root for this Method*
-#if INCLUDE_SHENANDOAHGC
+/*#if INCLUDE_SHENANDOAHGC
   if (UseShenandoahGC) {
     __ load_mirror(x28, xmethod);
     __ sd(x28, Address(sp, 4 * wordSize));
   } else
-#endif
+#endif*/
   {
     __ load_mirror(t0, xmethod);
     __ sd(t0, Address(sp, 4 * wordSize));
