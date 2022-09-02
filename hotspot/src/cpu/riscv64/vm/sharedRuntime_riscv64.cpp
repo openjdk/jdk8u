@@ -30,16 +30,15 @@
 #include "code/debugInfoRec.hpp"
 #include "code/icBuffer.hpp"
 #include "code/vtableStubs.hpp"
-#include "interpreter/interp_masm.hpp"
 #include "interpreter/interpreter.hpp"
-#include "logging/log.hpp"
 #include "memory/resourceArea.hpp"
 #include "oops/compiledICHolder.hpp"
-#include "runtime/safepointMechanism.hpp"
+#include "safepointMechanism_riscv64.hpp"
 #include "runtime/sharedRuntime.hpp"
 #include "runtime/vframeArray.hpp"
 #include "utilities/align.hpp"
 #include "vmreg_riscv64.inline.hpp"
+#include "prims/jvmtiRedefineClassesTrace.hpp"
 #ifdef COMPILER1
 #include "c1/c1_Runtime1.hpp"
 #endif
@@ -1642,7 +1641,7 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
   }
 
   // RedefineClasses() tracing support for obsolete method entry
-  if (log_is_enabled(Trace, redefine, class, obsolete)) {
+  if(RC_TRACE_IN_RANGE(0x00001000, 0x00002000)) {
     // protect the args we've loaded
     save_args(masm, total_c_args, c_arg, out_regs);
     __ mov_metadata(c_rarg1, method());

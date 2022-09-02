@@ -26,8 +26,7 @@
 
 #include "precompiled.hpp"
 #include "asm/macroAssembler.inline.hpp"
-//#include "gc/shared/barrierSet.hpp"
-//#include "gc/shared/barrierSetAssembler.hpp"
+#include "barrierSetAssembler_riscv64.hpp"
 #include "interp_masm_riscv64.hpp"
 #include "interpreter/interpreter.hpp"
 #include "interpreter/interpreterRuntime.hpp"
@@ -44,7 +43,7 @@
 #include "safepointMechanism_riscv64.hpp"
 #include "runtime/sharedRuntime.hpp"
 #include "runtime/thread.inline.hpp"
-
+#include "prims/jvmtiRedefineClassesTrace.hpp"
 
 void InterpreterMacroAssembler::narrow(Register result) {
   // Get method->_constMethod->_result_type
@@ -1522,7 +1521,7 @@ void InterpreterMacroAssembler::notify_method_entry() {
   }
 
   // RedefineClasses() tracing support for obsolete method entry
-  if (log_is_enabled(Trace, redefine, class, obsolete)) {
+  if (RC_TRACE_IN_RANGE(0x00001000, 0x00002000)) {
     get_method(c_rarg1);
     call_VM_leaf(
       CAST_FROM_FN_PTR(address, SharedRuntime::rc_trace_method_entry),
