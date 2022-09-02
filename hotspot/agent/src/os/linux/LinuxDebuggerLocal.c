@@ -337,7 +337,7 @@ JNIEXPORT jbyteArray JNICALL Java_sun_jvm_hotspot_debugger_linux_LinuxDebuggerLo
   return (err == PS_OK)? array : 0;
 }
 
-#if defined(i386) || defined(amd64) || defined(sparc) || defined(sparcv9) || defined(aarch64)
+#if defined(i386) || defined(amd64) || defined(sparc) || defined(sparcv9) || defined(aarch64) || defined(__riscv)
 JNIEXPORT jlongArray JNICALL Java_sun_jvm_hotspot_debugger_linux_LinuxDebuggerLocal_getThreadIntegerRegisterSet0
   (JNIEnv *env, jobject this_obj, jint lwp_id) {
 
