@@ -196,12 +196,14 @@ class SharedRuntime: AllStatic {
   static void    throw_NullPointerException(JavaThread* thread);
   static void    throw_NullPointerException_at_call(JavaThread* thread);
   static void    throw_StackOverflowError(JavaThread* thread);
+  static void    throw_delayed_StackOverflowError(JavaThread* thread);
   static address continuation_for_implicit_exception(JavaThread* thread,
                                                      address faulting_pc,
                                                      ImplicitExceptionKind exception_kind);
-
+  static void enable_stack_reserved_zone(JavaThread* thread);
   // Shared stub locations
   static address get_poll_stub(address pc);
+  static frame look_for_reserved_stack_annotated_method(JavaThread* thread, frame fr);
 
   static address get_ic_miss_stub() {
     assert(_ic_miss_blob!= NULL, "oops");
@@ -377,6 +379,8 @@ class SharedRuntime: AllStatic {
   // passed in a register OR in a stack slot.
   static int c_calling_convention(const BasicType *sig_bt, VMRegPair *regs, VMRegPair *regs2,
                                   int total_args_passed);
+  static size_t trampoline_size();
+  static void generate_trampoline(MacroAssembler *masm, address destination);
 
   // Compute the new number of arguments in the signature if 32 bit ints
   // must be converted to longs. Needed if CCallingConventionRequiresIntsAsLongs
@@ -387,7 +391,19 @@ class SharedRuntime: AllStatic {
   // is true.
   static void convert_ints_to_longints(int i2l_argcnt, int& in_args_count,
                                        BasicType*& in_sig_bt, VMRegPair*& in_regs);
+  static void gen_i2c_adapter(MacroAssembler *_masm,
+                              int total_args_passed,
+                              int comp_args_on_stack,
+                              const BasicType *sig_bt,
+                              const VMRegPair *regs);
 
+  static nmethod* generate_native_wrapper(MacroAssembler* masm,
+                                          const methodHandle& method,
+                                          int compile_id,
+                                          BasicType* sig_bt,
+                                          VMRegPair* regs,
+                                          BasicType ret_type,
+                                          address critical_entry);
   // Generate I2C and C2I adapters. These adapters are simple argument marshalling
   // blobs. Unlike adapters in the tiger and earlier releases the code in these
   // blobs does not create a new frame and are therefore virtually invisible

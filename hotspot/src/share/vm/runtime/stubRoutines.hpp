@@ -404,6 +404,7 @@ class StubRoutines: AllStatic {
   static address dexp()                { return _dexp; }
   static address dpow()                { return _dpow; }
   static address dsin()                { return _dsin; }
+  static address dcos()                { return _dcos; }
   static double  intrinsic_log(double d) {
     assert(_intrinsic_log != NULL, "must be defined");
     return _intrinsic_log(d);
