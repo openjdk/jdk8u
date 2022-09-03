@@ -332,6 +332,7 @@ class Thread: public ThreadShadow {
   // Returns the current thread
   static inline Thread* current();
   static inline Thread* current_or_null();
+  static inline Thread* current_or_null_safe();
 
   // Common thread operations
   static void set_priority(Thread* thread, ThreadPriority priority);
@@ -556,6 +557,7 @@ protected:
   size_t  stack_size() const           { return _stack_size; }
   void    set_stack_size(size_t size)  { _stack_size = size; }
   void    record_stack_base_and_size();
+  address stack_end()  const           { return stack_base() - stack_size(); }
 
   bool    on_local_stack(address adr) const {
     /* QQQ this has knowledge of direction, ought to be a stack method */
@@ -685,6 +687,12 @@ inline Thread* Thread::current() {
 }
 
 inline Thread* Thread::current_or_null() {
+  if (ThreadLocalStorage::is_initialized()) {
+    return ThreadLocalStorage::thread();
+  }
+  return NULL;
+}
+inline Thread* Thread::current_or_null_safe() {
   if (ThreadLocalStorage::is_initialized()) {
     return ThreadLocalStorage::thread();
   }
@@ -1284,6 +1292,7 @@ class JavaThread: public Thread {
   void set_exception_pc(address a)               { _exception_pc = a; }
   void set_exception_handler_pc(address a)       { _exception_handler_pc = a; }
   void set_is_method_handle_return(bool value)   { _is_method_handle_return = value ? 1 : 0; }
+  static size_t _stack_reserved_zone_size;
 
   void clear_exception_oop_and_pc() {
     set_exception_oop(NULL);
@@ -1309,6 +1318,21 @@ class JavaThread: public Thread {
     assert(_stack_shadow_zone_size > 0, "Don't call this before the field is initialized.");
     return _stack_shadow_zone_size;
   }
+  static size_t stack_reserved_zone_size() {
+    // _stack_reserved_zone_size may be 0. This indicates the feature is off.
+    return _stack_reserved_zone_size;
+  }
+  address stack_reserved_zone_base() {
+    return (address)(stack_end() +
+                     (stack_red_zone_size() + stack_yellow_zone_size() + stack_reserved_zone_size()));
+  }
+  bool in_stack_yellow_reserved_zone(address a) {
+    return (a <= stack_reserved_zone_base()) && (a >= stack_red_zone_base());
+  }
+  bool in_stack_reserved_zone(address a) {
+    return (a <= stack_reserved_zone_base()) &&
+           (a >= (address)((intptr_t)stack_reserved_zone_base() - stack_reserved_zone_size()));
+   }
   void create_stack_guard_pages();
   void remove_stack_guard_pages();
 
@@ -1316,6 +1340,14 @@ class JavaThread: public Thread {
   void disable_stack_yellow_zone();
   void enable_stack_red_zone();
   void disable_stack_red_zone();
+  void disable_stack_yellow_reserved_zone();
+  void disable_stack_reserved_zone();
+  void set_reserved_stack_activation(address addr) {
+    assert(_reserved_stack_activation == stack_base()
+            || _reserved_stack_activation == NULL
+            || addr == stack_base(), "Must not be set twice");
+    _reserved_stack_activation = addr;
+  }
 
   inline bool stack_guard_zone_unused();
   inline bool stack_yellow_zone_disabled();
