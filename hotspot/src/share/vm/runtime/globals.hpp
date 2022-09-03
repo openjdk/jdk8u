@@ -745,6 +745,9 @@ class CommandLineFlags {
   product(bool, UseAESIntrinsics, false,                                    \
           "Use intrinsics for AES versions of crypto")                      \
                                                                             \
+ diagnostic(bool, UseAESCTRIntrinsics, false,                               \
+          "Use intrinsics for the paralleled version of AES/CTR crypto")    \
+                                                                            \
   product(bool, UseSHA1Intrinsics, false,                                   \
           "Use intrinsics for SHA-1 crypto hash function")                  \
                                                                             \
@@ -756,6 +759,9 @@ class CommandLineFlags {
                                                                             \
   product(bool, UseCRC32Intrinsics, false,                                  \
           "use intrinsics for java.util.zip.CRC32")                         \
+                                                                            \
+  diagnostic(bool, UseCRC32CIntrinsics, false,                              \
+          "use intrinsics for java.util.zip.CRC32C")                        \
                                                                             \
   develop(bool, TraceCallFixup, false,                                      \
           "Trace all call fixups")                                          \
