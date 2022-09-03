@@ -114,7 +114,7 @@ VtableStub* VtableStubs::create_vtable_stub(int vtable_index) {
   // 1 instruction (best case):ld * 1
   slop_delta = 16 - (int)(__ pc() - start_pc);
   slop_bytes += slop_delta;
-  assert(slop_delta >= 0, "negative slop(%d) encountered, adjust code size estimate!", slop_delta);
+  vmassert(slop_delta >= 0, "negative slop(%d) encountered, adjust code size estimate!", slop_delta);
 
 #ifndef PRODUCT
   if (DebugVtables) {
@@ -219,7 +219,7 @@ VtableStub* VtableStubs::create_itable_stub(int itable_index) {
   const ptrdiff_t codesize = typecheckSize + lookupSize;
   slop_delta = (int)(estimate - codesize);
   slop_bytes += slop_delta;
-  assert(slop_delta >= 0, "itable #%d: Code size estimate (%d) for lookup_interface_method too small, required: %d", itable_index, (int)estimate, (int)codesize);
+  vmassert(slop_delta >= 0, "itable #%d: Code size estimate (%d) for lookup_interface_method too small, required: %d", itable_index, (int)estimate, (int)codesize);
 
 #ifdef ASSERT
   if (DebugVtables) {

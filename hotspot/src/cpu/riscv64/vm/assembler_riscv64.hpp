@@ -143,7 +143,7 @@ const FloatRegister g_FPArgReg[Argument::n_float_register_parameters_c] = {
   c_farg0, c_farg1, c_farg2, c_farg3, c_farg4, c_farg5, c_farg6, c_farg7
 };
 
-#define assert_cond(ARG1) assert(ARG1, #ARG1)
+#define assert_cond(ARG1) vmassert(ARG1, #ARG1)
 
 // Addressing modes
 class Address {
