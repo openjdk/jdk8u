@@ -73,7 +73,7 @@ void os::check_or_create_dump(void* exceptionRecord, void* contextRecord, char* 
   }
   VMError::report_coredump_status(buffer, success);
 }
-
+#if !defined(RISCV64) || defined(ZERO)
 int os::get_native_stack(address* stack, int frames, int toSkip) {
 #ifdef _NMT_NOINLINE_
   toSkip++;
@@ -104,7 +104,7 @@ int os::get_native_stack(address* stack, int frames, int toSkip) {
 
   return num_of_frames;
 }
-
+#endif
 
 bool os::unsetenv(const char* name) {
   assert(name != NULL, "Null pointer");
