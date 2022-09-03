@@ -122,7 +122,9 @@ class VtableStubs : AllStatic {
   static void        enter             (bool is_vtable_stub, int vtable_index, VtableStub* s);
   static inline uint hash              (bool is_vtable_stub, int vtable_index);
   static address     find_stub         (bool is_vtable_stub, int vtable_index);
-
+  static void        bookkeeping(MacroAssembler* masm, outputStream* out, VtableStub* s,
+                                 address npe_addr, address ame_addr,   bool is_vtable_stub,
+                                 int     index,    int     slop_bytes, int  index_dependent_slop);
  public:
   static address     find_vtable_stub(int vtable_index) { return find_stub(true,  vtable_index); }
   static address     find_itable_stub(int itable_index) { return find_stub(false, itable_index); }
