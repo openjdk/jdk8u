@@ -1114,7 +1114,7 @@ static void gen_special_dispatch(MacroAssembler* masm,
   } else if (iid == vmIntrinsics::_invokeBasic) {
     has_receiver = true;
   } else {
-    fatal("unexpected intrinsic id %d", iid);
+    fatal(err_msg_res("unexpected intrinsic id %d", iid));
   }
 
   if (member_reg != noreg) {

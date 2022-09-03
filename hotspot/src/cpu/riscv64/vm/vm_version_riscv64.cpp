@@ -32,7 +32,9 @@
 #include "utilities/macros.hpp"
 #include "vm_version_riscv64.hpp"
 
-#include OS_HEADER_INLINE(os)
+#ifdef TARGET_OS_FAMILY_linux
+# include "os_linux.inline.hpp"
+#endif
 
 #include <sys/auxv.h>
 #include <asm/hwcap.h>
@@ -166,5 +168,10 @@ void VM_Version::get_c2_processor_features() {
 
 void VM_Version::initialize() {
   get_processor_features();
-  UNSUPPORTED_OPTION(CriticalJNINatives);
+    if (CriticalJNINatives) {
+    if (FLAG_IS_CMDLINE(CriticalJNINatives)) {
+      warning("CriticalJNINatives specified, but not supported in this VM");
+    }
+    FLAG_SET_DEFAULT(CriticalJNINatives, false);
+  }
 }

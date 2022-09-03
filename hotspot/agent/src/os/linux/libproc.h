@@ -36,7 +36,7 @@
 
 #include <sys/ptrace.h>
 
-#if defined(aarch64)
+#if defined(aarch64) || defined(__riscv)
 #include "asm/ptrace.h"
 #endif
 

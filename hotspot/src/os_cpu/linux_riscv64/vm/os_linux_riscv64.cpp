@@ -217,7 +217,7 @@ NOINLINE frame os::current_frame() {
   }
 }
 
-bool os::is_first_C_frame(frame* fr) {
+/*bool os::is_first_C_frame(frame* fr) {
   // Load up sp, fp, sender sp and sender fp, check for reasonable values.
   // Check usp first, because if that's bad the other accessors may fault
   // on some architectures.  Ditto ufp second, etc.
@@ -263,7 +263,7 @@ bool os::is_first_C_frame(frame* fr) {
   }
 
   return false;
-}
+}*/
 
 int os::get_native_stack(address* stack, int frames, int toSkip) {
   int frame_idx = 0;

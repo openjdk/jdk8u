@@ -643,6 +643,7 @@ class os: AllStatic {
   static void print_siginfo(outputStream* st, void* siginfo);
   static void print_signal_handlers(outputStream* st, char* buf, size_t buflen);
   static void print_date_and_time(outputStream* st, char* buf, size_t buflen);
+  static void print_instructions(outputStream* st, address pc, int unitsize);
 
   static void print_location(outputStream* st, intptr_t x, bool verbose = false);
   static size_t lasterror(char *buf, size_t len);
@@ -824,6 +825,7 @@ class os: AllStatic {
 
   // Hook for os specific jvm options that we don't want to abort on seeing
   static bool obsolete_option(const JavaVMOption *option);
+  static int extra_bang_size_in_bytes();
 
   // Extensions
 #include "runtime/os_ext.hpp"

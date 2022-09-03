@@ -50,6 +50,7 @@ class Abstract_VM_Version: AllStatic {
   static int          _parallel_worker_threads;
   static bool         _parallel_worker_threads_initialized;
   static int          _reserve_for_allocation_prefetch;
+  static const char* _features_string;
 
   static unsigned int nof_parallel_worker_threads(unsigned int num,
                                                   unsigned int dem,
