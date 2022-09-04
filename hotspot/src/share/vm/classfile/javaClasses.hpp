@@ -1099,6 +1099,7 @@ class java_lang_invoke_MemberName: AllStatic {
   static int _vmtarget_offset;
   static int _vmloader_offset;
   static int _vmindex_offset;
+  static int _method_offset;
 
   static void compute_offsets();
 
@@ -1153,10 +1154,30 @@ class java_lang_invoke_MemberName: AllStatic {
   static int flags_offset_in_bytes()            { return _flags_offset; }
   static int vmtarget_offset_in_bytes()         { return _vmtarget_offset; }
   static int vmindex_offset_in_bytes()          { return _vmindex_offset; }
+  static int method_offset_in_bytes()           { return _method_offset; }
 
   static bool equals(oop mt1, oop mt2);
 };
+class java_lang_invoke_ResolvedMethodName : AllStatic {
+  friend class JavaClasses;
 
+  static int _vmtarget_offset;
+  static int _vmholder_offset;
+
+  static void compute_offsets();
+ public:
+  static void serialize_offsets(SerializeClosure* f) NOT_CDS_RETURN;
+
+  static int vmtarget_offset_in_bytes() { return _vmtarget_offset; }
+
+  static Method* vmtarget(oop resolved_method);
+  static void set_vmtarget(oop resolved_method, Method* method);
+
+  // find or create resolved member name
+  static oop find_resolved_method(const methodHandle& m, TRAPS);
+
+  static bool is_instance(oop resolved_method);
+};
 
 // Interface to java.lang.invoke.MethodType objects
 
