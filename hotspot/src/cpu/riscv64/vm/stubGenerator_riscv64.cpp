@@ -27,8 +27,8 @@
 #include "precompiled.hpp"
 #include "asm/macroAssembler.hpp"
 #include "asm/macroAssembler.inline.hpp"
-#include "gc/shared/barrierSet.hpp"
-#include "gc/shared/barrierSetAssembler.hpp"
+//#include "gc/shared/barrierSet.hpp"
+#include "barrierSetAssembler_riscv64.hpp"
 #include "interpreter/interpreter.hpp"
 #include "nativeInst_riscv64.hpp"
 #include "oops/instanceOop.hpp"
@@ -993,7 +993,7 @@ class StubGenerator: public StubCodeGenerator {
       decorators |= ARRAYCOPY_ALIGNED;
     }
 
-    BarrierSetAssembler *bs = BarrierSet::barrier_set()->barrier_set_assembler();
+    BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
     bs->arraycopy_prologue(_masm, decorators, is_oop, s, d, count, saved_reg);
 
     if (is_oop) {
@@ -1060,7 +1060,7 @@ class StubGenerator: public StubCodeGenerator {
       decorators |= ARRAYCOPY_ALIGNED;
     }
 
-    BarrierSetAssembler *bs = BarrierSet::barrier_set()->barrier_set_assembler();
+    BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
     bs->arraycopy_prologue(_masm, decorators, is_oop, s, d, count, saved_regs);
 
     if (is_oop) {
@@ -1402,7 +1402,7 @@ class StubGenerator: public StubCodeGenerator {
       decorators |= IS_DEST_UNINITIALIZED;
     }
 
-    BarrierSetAssembler *bs = BarrierSet::barrier_set()->barrier_set_assembler();
+    BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
     bs->arraycopy_prologue(_masm, decorators, is_oop, from, to, count, wb_pre_saved_regs);
 
     // save the original count

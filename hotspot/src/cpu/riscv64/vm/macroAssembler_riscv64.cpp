@@ -1325,7 +1325,7 @@ int MacroAssembler::patch_oop(address insn_addr, address o) {
   // instruction.
   if (NativeInstruction::is_li32_at(insn_addr)) {
     // Move narrow OOP
-    narrowOop n = CompressedOops::encode((oop)o);
+    narrowOop n = oopDesc::encode_heap_oop((oop)o);
     return patch_imm_in_li32(insn_addr, (int32_t)n);
   } else if (NativeInstruction::is_movptr_at(insn_addr)) {
     // Move wide OOP
@@ -1716,7 +1716,7 @@ void MacroAssembler::resolve_oop_handle(Register result, Register tmp) {
 void MacroAssembler::access_load_at(BasicType type, DecoratorSet decorators,
                                     Register dst, Address src,
                                     Register tmp1, Register thread_tmp) {
-  BarrierSetAssembler *bs = BarrierSet::barrier_set()->barrier_set_assembler();
+  BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
   decorators = AccessInternal::decorator_fixup(decorators);
   bool as_raw = (decorators & AS_RAW) != 0;
   if (as_raw) {
@@ -1741,7 +1741,7 @@ void MacroAssembler::null_check(Register reg, int offset) {
 void MacroAssembler::access_store_at(BasicType type, DecoratorSet decorators,
                                      Address dst, Register src,
                                      Register tmp1, Register thread_tmp) {
-  BarrierSetAssembler *bs = BarrierSet::barrier_set()->barrier_set_assembler();
+  BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
   decorators = AccessInternal::decorator_fixup(decorators);
   bool as_raw = (decorators & AS_RAW) != 0;
   if (as_raw) {
@@ -2904,7 +2904,7 @@ void MacroAssembler::tlab_allocate(Register obj,
                                    Register tmp2,
                                    Label& slow_case,
                                    bool is_far) {
-  BarrierSetAssembler *bs = BarrierSet::barrier_set()->barrier_set_assembler();
+  BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
   bs->tlab_allocate(this, obj, var_size_in_bytes, con_size_in_bytes, tmp1, tmp2, slow_case, is_far);
 }
 
@@ -2915,7 +2915,7 @@ void MacroAssembler::eden_allocate(Register obj,
                                    Register tmp1,
                                    Label& slow_case,
                                    bool is_far) {
-  BarrierSetAssembler *bs = BarrierSet::barrier_set()->barrier_set_assembler();
+  BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
   bs->eden_allocate(this, obj, var_size_in_bytes, con_size_in_bytes, tmp1, slow_case, is_far);
 }
 
@@ -2943,7 +2943,7 @@ void MacroAssembler::get_thread(Register thread) {
 
 void MacroAssembler::load_byte_map_base(Register reg) {
   int32_t offset = 0;
-  jbyte *byte_map_base = ((CardTableBarrierSet*)(BarrierSet::barrier_set()))->card_table()->byte_map_base();
+  jbyte *byte_map_base = ((CardTableBarrierSet*)(BarrierSetRv::barrier_set()))->card_table()->byte_map_base();
   la_patchable(reg, ExternalAddress((address)byte_map_base), offset);
   addi(reg, reg, offset);
 }
@@ -3113,7 +3113,7 @@ address MacroAssembler::trampoline_call(Address entry, CodeBuffer *cbuf) {
 }
 
 address MacroAssembler::ic_call(address entry, jint method_index) {
-  RelocationHolder rh = virtual_call_Relocation::spec(pc(), method_index);
+  RelocationHolder rh = virtual_call_Relocation::spec(pc());
   movptr(t1, (address)Universe::non_oop_word());
   assert_cond(entry != NULL);
   return trampoline_call(Address(entry, rh));
@@ -3213,12 +3213,12 @@ void MacroAssembler::cmpptr(Register src1, Address src2, Label& equal) {
 }
 
 void MacroAssembler::oop_equal(Register obj1, Register obj2, Label& equal, bool is_far) {
-  BarrierSetAssembler* bs = BarrierSet::barrier_set()->barrier_set_assembler();
+  BarrierSetAssembler* bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
   bs->obj_equals(this, obj1, obj2, equal, is_far);
 }
 
 void MacroAssembler::oop_nequal(Register obj1, Register obj2, Label& nequal, bool is_far) {
-  BarrierSetAssembler* bs = BarrierSet::barrier_set()->barrier_set_assembler();
+  BarrierSetAssembler* bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
   bs->obj_nequals(this, obj1, obj2, nequal, is_far);
 }
 
