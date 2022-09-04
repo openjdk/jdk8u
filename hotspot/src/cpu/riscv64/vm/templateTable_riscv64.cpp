@@ -915,15 +915,15 @@ void TemplateTable::aload(int n)
   __ ld(x10, iaddress(n));
 }
 
-void TemplateTable::aload_0() {
-  aload_0_internal();
-}
+//void TemplateTable::aload_0() {
+ // aload_0_internal();
+//}
 
 /*void TemplateTable::nofast_aload_0() {
   aload_0_internal(may_not_rewrite);
 }*/
 
-void TemplateTable::aload_0_internal(RewriteControl rc) {
+/*void TemplateTable::aload_0_internal(RewriteControl rc) {
   // According to bytecode histograms, the pairs:
   //
   // _aload_0, _fast_igetfield
@@ -989,7 +989,7 @@ void TemplateTable::aload_0_internal(RewriteControl rc) {
   // Do actual aload_0 (must do this after patch_bytecode which might call VM and GC might change oop).
   aload(0);
 }
-
+*/
 void TemplateTable::istore()
 {
   transition(itos, vtos);
@@ -2373,14 +2373,14 @@ void TemplateTable::resolve_cache_and_index(int byte_no,
     fatal(err_msg("unexpected bytecode: %s", Bytecodes::name(bytecode())));
     break;
    }
-  assert(byte_no == f1_byte || byte_no == f2_byte, "byte_no out of range");
+  /*assert(byte_no == f1_byte || byte_no == f2_byte, "byte_no out of range");
   __ get_cache_and_index_and_bytecode_at_bcp(Rcache, index, temp, byte_no, 1, index_size);
   __ mv(t0, (int) code);
   __ beq(temp, t0, resolved);
 
   address entry = CAST_FROM_FN_PTR(address, InterpreterRuntime::resolve_from_cache);
   __ mv(temp, (int) code);
-  __ call_VM(noreg, entry, temp);
+  __ call_VM(noreg, entry, temp);*/
 
   // Update registers with resolved info
   __ get_cache_and_index_at_bcp(Rcache, index, 1, index_size);
@@ -2671,9 +2671,9 @@ void TemplateTable::getfield(int byte_no)
   getfield_or_static(byte_no, false);
 }
 
-void TemplateTable::nofast_getfield(int byte_no) {
-  getfield_or_static(byte_no, false);
-}
+//void TemplateTable::nofast_getfield(int byte_no) {
+ // getfield_or_static(byte_no, false);
+//}
 
 void TemplateTable::getstatic(int byte_no)
 {
@@ -2979,9 +2979,9 @@ void TemplateTable::putfield(int byte_no)
   putfield_or_static(byte_no, false);
 }
 
-void TemplateTable::nofast_putfield(int byte_no) {
-  putfield_or_static(byte_no, false);
-}
+//void TemplateTable::nofast_putfield(int byte_no) {
+  //putfield_or_static(byte_no, false);
+//}
 
 void TemplateTable::putstatic(int byte_no) {
   putfield_or_static(byte_no, true);
