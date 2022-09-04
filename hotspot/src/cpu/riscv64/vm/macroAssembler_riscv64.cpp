@@ -28,23 +28,22 @@
 #include "asm/assembler.hpp"
 #include "asm/assembler.inline.hpp"
 #include "compiler/disassembler.hpp"
-#include "gc/shared/barrierSet.hpp"
-#include "gc/shared/barrierSetAssembler.hpp"
-#include "gc/shared/cardTable.hpp"
-#include "gc/shared/cardTableBarrierSet.hpp"
+#include "barrierSetAssembler_riscv64.hpp"
+#include "cardTable_riscv64.hpp"
+#include "cardTableBarrierSet_riscv64.hpp"
 #include "interpreter/interpreter.hpp"
 #include "memory/resourceArea.hpp"
 #include "nativeInst_riscv64.hpp"
-#include "oops/accessDecorators.hpp"
-#include "oops/compressedOops.inline.hpp"
+#include "accessDecorators_riscv64.hpp"
 #include "oops/klass.inline.hpp"
 #include "oops/oop.hpp"
 #include "runtime/biasedLocking.hpp"
-#include "runtime/interfaceSupport.inline.hpp"
-#include "runtime/jniHandles.inline.hpp"
+//#include "runtime/interfaceSupport.inline.hpp"
+//#include "runtime/jniHandles.inline.hpp"
 #include "runtime/sharedRuntime.hpp"
 #include "runtime/thread.hpp"
 #include "utilities/macros.hpp"
+#include "safepointMechanism_riscv64.hpp"
 #ifdef COMPILER2
 #include "opto/compile.hpp"
 #include "opto/intrinsicnode.hpp"
@@ -499,7 +498,7 @@ void MacroAssembler::debug64(char* msg, int64_t pc, int64_t regs[])
   } else {
     ttyLocker ttyl;
     ::tty->print_cr("=============== DEBUG MESSAGE: %s ================\n", msg);
-    assert(false, "DEBUG MESSAGE: %s", msg);
+    vmassert(false, "DEBUG MESSAGE: %s", msg);
   }
 }
 
