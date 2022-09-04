@@ -163,7 +163,7 @@ const DecoratorSet MO_DECORATOR_MASK = MO_UNORDERED | MO_VOLATILE | MO_RELAXED |
 //   in a consistent way w.r.t. e.g. concurrent compaction, so that the right field is being accessed,
 //   or maintain, e.g. intergenerational or interregional pointers if applicable. This should be used with
 //   extreme caution in isolated scopes.
-// * AS_NORMAL: The accesses will be resolved to an accessor on the BarrierSet class, giving the
+// * AS_NORMAL: The accesses will be resolved to an accessor on the BarrierSetRv class, giving the
 //   responsibility of performing the access and what barriers to be performed to the GC. This is the default.
 //   Note that primitive accesses will only be resolved on the barrier set if the appropriate build-time
 //   decorator for enabling primitive barriers is enabled for the build.

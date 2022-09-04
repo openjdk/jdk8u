@@ -24,7 +24,6 @@
  */
 
 #include "precompiled.hpp"
-//#include "gc/shared/barrierSetAssembler.hpp"
 #include "gc_interface/collectedHeap.hpp"
 #include "runtime/jniHandles.hpp"
 #include "runtime/thread.hpp"
@@ -32,8 +31,7 @@
 #include "asm/macroAssembler.hpp"
 #include "globals_riscv64.hpp"
 
-
-
+/*
 class BarrierSetAssembler;
 // This class provides the interface between a barrier implementation and
 // the rest of the system.
@@ -50,7 +48,7 @@ public:
 #undef BARRIER_SET_DECLARE_BS_ENUM
     UnknownBS
   };
-*/
+
 private:
 
   BarrierSetAssembler* _barrier_set_assembler;
@@ -80,7 +78,7 @@ public:
     return _barrier_set_assembler;
   }
 
-};
+};*/
 
 #define __ masm->
 
