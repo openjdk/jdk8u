@@ -38,6 +38,9 @@ class MethodCounters: public MetaspaceObj {
   InvocationCounter _backedge_counter;           // Incremented before each backedge taken - used to trigger frequencey-based optimizations
   int               _interpreter_profile_limit;           // per-method InterpreterProfileLimit
   int               _interpreter_invocation_limit;
+  int               _interpreter_backward_branch_limit;
+  int               _invoke_mask;
+  int               _backedge_mask;
 #ifdef TIERED
   float             _rate;                        // Events (invocation and backedge counter increments) per millisecond
   u1                _highest_comp_level;          // Highest compile level this method has ever seen.
@@ -135,6 +138,10 @@ class MethodCounters: public MetaspaceObj {
  
   static ByteSize interpreter_invocation_limit_offset() {
     return byte_offset_of(MethodCounters, _interpreter_invocation_limit);
+  }
+
+  static ByteSize interpreter_backward_branch_limit_offset() {
+    return byte_offset_of(MethodCounters, _interpreter_backward_branch_limit);
   }
 };
 #endif //SHARE_VM_OOPS_METHODCOUNTERS_HPP

@@ -202,7 +202,7 @@ class nmethod : public CodeBlob {
 #ifdef ASSERT
   bool _oops_are_stale;  // indicates that it's no longer safe to access oops section
 #endif
-
+public:
   enum { in_use       = 0,   // executable nmethod
          not_entrant  = 1,   // marked for deoptimization but activations may still exist,
                              // will be transformed to zombie when all activations are gone
@@ -770,6 +770,7 @@ public:
   static int verified_entry_point_offset()        { return offset_of(nmethod, _verified_entry_point); }
   static int osr_entry_point_offset()             { return offset_of(nmethod, _osr_entry_point); }
   static int entry_bci_offset()                   { return offset_of(nmethod, _entry_bci); }
+  static int state_offset()                       { return offset_of(nmethod, _state); }
 
   // RedefineClasses support.   Mark metadata in nmethods as on_stack so that
   // redefine classes doesn't purge it.

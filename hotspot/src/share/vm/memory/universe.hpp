@@ -141,6 +141,7 @@ class Universe: AllStatic {
 
   static oop          _main_thread_group;             // Reference to the main thread group object
   static oop          _system_thread_group;           // Reference to the system thread group object
+  static oop          _the_null_sentinel;
 
   static objArrayOop  _the_empty_class_klass_array;   // Canonicalized obj array of type java.lang.Class
   static oop          _the_null_string;               // A cache of "null" as a Java string
@@ -282,6 +283,7 @@ class Universe: AllStatic {
   static oop long_mirror()                  { return check_mirror(_long_mirror); }
   static oop short_mirror()                 { return check_mirror(_short_mirror); }
   static oop void_mirror()                  { return check_mirror(_void_mirror); }
+  static address      the_null_sentinel_addr()        { return (address) &_the_null_sentinel;  }
 
   // table of same
   static oop _mirrors[T_VOID+1];
