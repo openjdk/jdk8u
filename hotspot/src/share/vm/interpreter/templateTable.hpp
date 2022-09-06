@@ -180,6 +180,7 @@ class TemplateTable: AllStatic {
   static void dload(int n);
   static void aload(int n);
   static void aload_0();
+  static void aload_0_internal(RewriteControl rc);
 
   static void istore();
   static void lstore();

@@ -93,6 +93,8 @@ char* os::non_memory_address_word() {
 address os::Linux::ucontext_get_pc( ucontext_t * uc) {
   return (address)uc->uc_mcontext.__gregs[REG_PC];
 }
+void os::initialize_thread(Thread *thr) {
+}
 
 void os::Linux::ucontext_set_pc(ucontext_t * uc, address pc) {
   uc->uc_mcontext.__gregs[REG_PC] = (intptr_t)pc;
@@ -317,7 +319,7 @@ JVM_handle_linux_signal(int sig,
                         int abort_if_unrecognized) {
   ucontext_t* uc = (ucontext_t*) ucVoid;
 
-  Thread* t = Thread::current_or_null_safe();
+  Thread* t = ThreadLocalStorage::get_thread_slow();
 
   // Must do this before SignalHandlerMark, if crash protection installed we will longjmp away
   // (no destructors can be run)
@@ -380,35 +382,21 @@ JVM_handle_linux_signal(int sig,
       address addr = (address) info->si_addr;
 
       // check if fault address is within thread stack
-      if (thread->on_local_stack(addr)) {
+ if (sig == SIGSEGV) {
+      address addr = (address) info->si_addr;
+
+      // check if fault address is within thread stack
+      if (addr < thread->stack_base() &&
+          addr >= thread->stack_base() - thread->stack_size()) {
         // stack overflow
-        if (thread->in_stack_yellow_reserved_zone(addr)) {
+        if (thread->in_stack_yellow_zone(addr)) {
+          thread->disable_stack_yellow_zone();
           if (thread->thread_state() == _thread_in_Java) {
-            if (thread->in_stack_reserved_zone(addr)) {
-              frame fr;
-              if (os::Linux::get_frame_at_stack_banging_point(thread, uc, &fr)) {
-                assert(fr.is_java_frame(), "Must be a Java frame");
-                frame activation =
-                  SharedRuntime::look_for_reserved_stack_annotated_method(thread, fr);
-                if (activation.sp() != NULL) {
-                  thread->disable_stack_reserved_zone();
-                  if (activation.is_interpreted_frame()) {
-                    thread->set_reserved_stack_activation((address)(
-                      activation.fp() + frame::interpreter_frame_initial_sp_offset));
-                  } else {
-                    thread->set_reserved_stack_activation((address)activation.unextended_sp());
-                  }
-                  return 1;
-                }
-              }
-            }
             // Throw a stack overflow exception.  Guard pages will be reenabled
             // while unwinding the stack.
-            thread->disable_stack_yellow_reserved_zone();
             stub = SharedRuntime::continuation_for_implicit_exception(thread, pc, SharedRuntime::STACK_OVERFLOW);
           } else {
             // Thread was in the vm or native code.  Return and try to finish.
-            thread->disable_stack_yellow_reserved_zone();
             return 1;
           }
         } else if (thread->in_stack_red_zone(addr)) {
@@ -540,6 +528,7 @@ JVM_handle_linux_signal(int sig,
   ShouldNotReachHere();
   return true; // Mute compiler
 }
+}
 
 void os::Linux::init_thread_fpu_state(void) {
 }
@@ -575,6 +564,49 @@ size_t os::Linux::default_guard_size(os::ThreadType thr_type) {
   // Creating guard page is very expensive. Java thread has HotSpot
   // guard page, only enable glibc guard page for non-Java threads.
   return (thr_type == java_thread ? 0 : page_size());
+}
+static void current_stack_region(address * bottom, size_t * size) {
+  if (os::is_primordial_thread()) {
+     // primordial thread needs special handling because pthread_getattr_np()
+     // may return bogus value.
+     *bottom = os::Linux::initial_thread_stack_bottom();
+     *size   = os::Linux::initial_thread_stack_size();
+  } else {
+     pthread_attr_t attr;
+
+     int rslt = pthread_getattr_np(pthread_self(), &attr);
+
+     // JVM needs to know exact stack location, abort if it fails
+     if (rslt != 0) {
+       if (rslt == ENOMEM) {
+         vm_exit_out_of_memory(0, OOM_MMAP_ERROR, "pthread_getattr_np");
+       } else {
+         fatal(err_msg("pthread_getattr_np failed with errno = %d", rslt));
+       }
+     }
+
+     if (pthread_attr_getstack(&attr, (void **)bottom, size) != 0) {
+         fatal("Can not locate current stack attributes!");
+     }
+
+     pthread_attr_destroy(&attr);
+
+  }
+  assert(os::current_stack_pointer() >= *bottom &&
+         os::current_stack_pointer() < *bottom + *size, "just checking");
+}
+size_t os::current_stack_size() {
+  // stack size includes normal stack and HotSpot guard pages
+  address bottom;
+  size_t size;
+  current_stack_region(&bottom, &size);
+  return size;
+}
+address os::current_stack_base() {
+  address bottom;
+  size_t size;
+  current_stack_region(&bottom, &size);
+  return (bottom + size);
 }
 /////////////////////////////////////////////////////////////////////////////
 // helper functions for fatal error handler

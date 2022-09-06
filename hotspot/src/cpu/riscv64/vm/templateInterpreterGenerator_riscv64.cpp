@@ -52,6 +52,8 @@
 #include "utilities/debug.hpp"
 #include "utilities/macros.hpp"
 #include <sys/types.h>
+#include "interpreter/interpreterGenerator.hpp"
+#include "interpreterGenerator_riscv64.hpp"
 
 #ifndef PRODUCT
 #include "oops/method.hpp"
@@ -68,7 +70,7 @@ int TemplateInterpreter::InterpreterCodeSize = 256 * 1024;
 
 //-----------------------------------------------------------------------------
 
-address TemplateInterpreterGenerator::generate_slow_signature_handler() {
+address AbstractInterpreterGenerator::generate_slow_signature_handler() {
   address entry = __ pc();
 
   __ andi(esp, esp, -16);
@@ -136,7 +138,7 @@ address TemplateInterpreterGenerator::generate_slow_signature_handler() {
 }
 
 // Various method entries
-address TemplateInterpreterGenerator::generate_math_entry(AbstractInterpreter::MethodKind kind) {
+address InterpreterGenerator::generate_math_entry(AbstractInterpreter::MethodKind kind) {
   // xmethod: Method*
   // x30: sender sp
   // esp: args
@@ -308,7 +310,7 @@ address TemplateInterpreterGenerator::generate_math_entry(AbstractInterpreter::M
 
 // Abstract method entry
 // Attempt to execute abstract method. Throw exception
-address TemplateInterpreterGenerator::generate_abstract_entry(void) {
+address InterpreterGenerator::generate_abstract_entry(void) {
   // xmethod: Method*
   // x30: sender SP
 
@@ -358,7 +360,7 @@ address TemplateInterpreterGenerator::generate_StackOverflowError_handler() {
   return entry;
 }
 
-address TemplateInterpreterGenerator::generate_ArrayIndexOutOfBounds_handler() {
+address TemplateInterpreterGenerator::generate_ArrayIndexOutOfBounds_handler(const char* name) {
   address entry = __ pc();
   // expression stack must be empty before entering the VM if an
   // exception happened
@@ -476,10 +478,16 @@ address TemplateInterpreterGenerator::generate_return_entry_for(TosState state, 
 
   return entry;
 }
+address TemplateInterpreterGenerator::generate_continuation_for(TosState state) {
+  address entry = __ pc();
+  // NULL last_sp until next java call
+  __ sd(zr, Address(fp, frame::interpreter_frame_last_sp_offset * wordSize));
+  __ dispatch_next(state);
+  return entry;
+}
 
-address TemplateInterpreterGenerator::generate_deopt_entry_for_rv(TosState state,
-                                                               int step,
-                                                               address continuation) {
+address TemplateInterpreterGenerator::generate_deopt_entry_for(TosState state,
+                                                               int step) {
   address entry = __ pc();
   __ restore_bcp();
   __ restore_locals();
@@ -512,15 +520,15 @@ address TemplateInterpreterGenerator::generate_deopt_entry_for_rv(TosState state
     __ bind(L);
   }
 
-  if (continuation == NULL) {
+  /*if (continuation == NULL) {
     __ dispatch_next(state, step);
   } else {
     __ jump_to_entry(continuation);
-  }
+  }*/
   return entry;
 }
 
-address TemplateInterpreterGenerator::generate_result_handler_for(BasicType type) {
+address AbstractInterpreterGenerator::generate_result_handler_for(BasicType type) {
   address entry = __ pc();
   if (type == T_OBJECT) {
     // retrieve result from frame
@@ -557,7 +565,7 @@ address TemplateInterpreterGenerator::generate_safept_entry_for(TosState state,
 //
 // xmethod: method
 //
-void TemplateInterpreterGenerator::generate_counter_incr(Label* overflow,
+void InterpreterGenerator::generate_counter_incr(Label* overflow,
                                                          Label* profile_method,
                                                          Label* profile_method_continue) {
   Label done;
@@ -633,12 +641,6 @@ void TemplateInterpreterGenerator::generate_counter_incr(Label* overflow,
   }
 }
 
-void TemplateInterpreterGenerator::generate_counter_overflow(Label& do_continue) {
-  __ mv(c_rarg1, zr);
-  __ call_VM(noreg,
-             CAST_FROM_FN_PTR(address, InterpreterRuntime::frequency_counter_overflow), c_rarg1);
-  __ j(do_continue);
-}
 
 // See if we've got enough room on the stack for locals plus overhead
 // below JavaThread::stack_overflow_limit(). If not, throw a StackOverflowError
@@ -658,7 +660,7 @@ void TemplateInterpreterGenerator::generate_counter_overflow(Label& do_continue)
 //
 // Kills:
 //      x10
-void TemplateInterpreterGenerator::generate_stack_overflow_check(void) {
+void InterpreterGenerator::generate_stack_overflow_check(void) {
 
   // monitor entry size: see picture of stack set
   // (generate_method_entry) and frame_amd64.hpp
@@ -728,11 +730,11 @@ void TemplateInterpreterGenerator::generate_stack_overflow_check(void) {
 //      xmethod: Method*
 //      xlocals: locals
 //
-// Kills:
+// Kills:InterpreterGenerator::generate_empty_entry
 //      x10
 //      c_rarg0, c_rarg1, c_rarg2, c_rarg3, ...(param regs)
 //      t0, t1 (temporary regs)
-void TemplateInterpreterGenerator::lock_method() {
+void InterpreterGenerator::lock_method() {
   // synchronize method
   const Address access_flags(xmethod, Method::access_flags_offset());
   const Address monitor_block_top(fp, frame::interpreter_frame_monitor_block_top_offset * wordSize);
@@ -780,6 +782,39 @@ void TemplateInterpreterGenerator::lock_method() {
   __ sd(x10, Address(esp, BasicObjectLock::obj_offset_in_bytes()));
   __ mv(c_rarg1, esp); // object address
   __ lock_object(c_rarg1);
+}
+address InterpreterGenerator::generate_empty_entry(void) {
+  // rmethod: Method*
+  // r13: sender sp must set sp to this value on return
+
+  if (!UseFastEmptyMethods) {
+    return NULL;
+  }
+
+  address entry_point = __ pc();
+
+  // If we need a safepoint check, generate full interpreter entry.
+  Label slow_path;
+  {
+    int32_t offset;
+    assert(SafepointSynchronize::_not_synchronized == 0,
+           "SafepointSynchronize::_not_synchronized");
+    __ la_patchable(t1, SafepointSynchronize::address_of_state(), offset);
+    __ ld(t1, Address(t1, offset));
+    __ bnez(t1, slow_path);
+  }
+
+  // do nothing for empty methods (do not even increment invocation counter)
+  // Code: _return
+  // _return
+  // return w/o popping parameters
+  __ mv(sp, x30); // Restore caller's SP
+  __ jr(lr);
+
+  __ bind(slow_path);
+  (void) generate_normal_entry(false);
+  return entry_point;
+
 }
 
 // Generate a fixed interpreter frame. This is identical setup for
@@ -862,9 +897,11 @@ void TemplateInterpreterGenerator::generate_fixed_frame(bool native_call) {
 //------------------------------------------------------------------------------------------------------------------------
 //
 //
-
+address InterpreterGenerator::generate_accessor_entry(void) {
+  return NULL;
+}
 // Method entry for java.lang.ref.Reference.get.
-address TemplateInterpreterGenerator::generate_Reference_get_entry(void) {
+address InterpreterGenerator::generate_Reference_get_entry(void) {
   // Code: _aload_0, _getfield, _areturn
   // parameter size = 1
   //
@@ -928,9 +965,13 @@ address TemplateInterpreterGenerator::generate_Reference_get_entry(void) {
  * Method entry for static native methods:
  *   int java.util.zip.CRC32.update(int crc, int b)
  */
-address TemplateInterpreterGenerator::generate_CRC32_update_entry() {
+address InterpreterGenerator::generate_CRC32_update_entry() {
   // TODO: Unimplemented generate_CRC32_update_entry
   return 0;
+}
+InterpreterGenerator::InterpreterGenerator(StubQueue* code)
+  : TemplateInterpreterGenerator(code) {
+   generate_all(); // down here so it can be "virtual"
 }
 
 /**
@@ -938,7 +979,7 @@ address TemplateInterpreterGenerator::generate_CRC32_update_entry() {
  *   int java.util.zip.CRC32.updateBytes(int crc, byte[] b, int off, int len)
  *   int java.util.zip.CRC32.updateByteBuffer(int crc, long buf, int off, int len)
  */
-address TemplateInterpreterGenerator::generate_CRC32_updateBytes_entry(AbstractInterpreter::MethodKind kind) {
+address InterpreterGenerator::generate_CRC32_updateBytes_entry(AbstractInterpreter::MethodKind kind) {
   // TODO: Unimplemented generate_CRC32_updateBytes_entry
   return 0;
 }
@@ -955,7 +996,7 @@ address TemplateInterpreterGenerator::generate_CRC32C_updateBytes_entry(Abstract
   return 0;
 }
 
-void TemplateInterpreterGenerator::bang_stack_shadow_pages(bool native_call) {
+void InterpreterGenerator::bang_stack_shadow_pages(bool native_call) {
   // Bang each page in the shadow zone. We can't assume it's been done for
   // an interpreter frame with greater than a page of locals, so each page
   // needs to be checked.  Only true for non-native.
@@ -969,11 +1010,17 @@ void TemplateInterpreterGenerator::bang_stack_shadow_pages(bool native_call) {
     }
   }
 }
+void InterpreterGenerator::generate_counter_overflow(Label* do_continue) {
+  __ mv(c_rarg1, zr);
+  __ call_VM(noreg,
+             CAST_FROM_FN_PTR(address, InterpreterRuntime::frequency_counter_overflow), c_rarg1);
+  __ j(*do_continue);
+}
 
 // Interpreter stub for calling a native method. (asm interpreter)
 // This sets up a somewhat different looking stack for calling the
 // native method than the typical interpreter frame setup.
-address TemplateInterpreterGenerator::generate_native_entry(bool synchronized) {
+address InterpreterGenerator::generate_native_entry(bool synchronized) {
   // determine code generation flags
   bool inc_counter  = UseCompiler || CountCompiledCalls || LogTouchedMethods;
 
@@ -1233,7 +1280,7 @@ address TemplateInterpreterGenerator::generate_native_entry(bool synchronized) {
   }
 
   // check for safepoint operation in progress and/or pending suspend requests
-  {
+  /*{
     Label L, Continue;
     __ safepoint_poll_acquire(L);
     __ lwu(t1, Address(xthread, JavaThread::suspend_flags_offset()));
@@ -1252,7 +1299,7 @@ address TemplateInterpreterGenerator::generate_native_entry(bool synchronized) {
     __ get_method(xmethod);
     __ reinit_heapbase();
     __ bind(Continue);
-  }
+  }*/
 
   // change thread state
   // Force all preceding writes to be observed prior to thread state change
@@ -1387,7 +1434,7 @@ address TemplateInterpreterGenerator::generate_native_entry(bool synchronized) {
   if (inc_counter) {
     // Handle overflow of counter and compile method
     __ bind(invocation_counter_overflow);
-    generate_counter_overflow(continue_after_compile);
+    generate_counter_overflow(&continue_after_compile);
   }
 
   return entry_point;
@@ -1396,7 +1443,7 @@ address TemplateInterpreterGenerator::generate_native_entry(bool synchronized) {
 //
 // Generic interpreted method entry to (asm) interpreter
 //
-address TemplateInterpreterGenerator::generate_normal_entry(bool synchronized) {
+address InterpreterGenerator::generate_normal_entry(bool synchronized) {
 
   // determine code generation flags
   const bool inc_counter  = UseCompiler || CountCompiledCalls || LogTouchedMethods;
@@ -1566,7 +1613,7 @@ address TemplateInterpreterGenerator::generate_normal_entry(bool synchronized) {
     }
     // Handle overflow of counter and compile method
     __ bind(invocation_counter_overflow);
-    generate_counter_overflow(continue_after_compile);
+    generate_counter_overflow(&continue_after_compile);
   }
 
   return entry_point;
@@ -1791,6 +1838,7 @@ void TemplateInterpreterGenerator::generate_throw_exception() {
                                                 // handler of caller
 }
 
+
 //
 // JVMTI ForceEarlyReturn support
 //
@@ -1844,7 +1892,21 @@ void TemplateInterpreterGenerator::set_vtos_entry_points(Template* t,
   __ bind(L);
   generate_and_dispatch(t);
 }
+void Deoptimization::unwind_callee_save_values(frame* f, vframeArray* vframe_array) {
 
+  // This code is sort of the equivalent of C2IAdapter::setup_stack_frame back in
+  // the days we had adapter frames. When we deoptimize a situation where a
+  // compiled caller calls a compiled caller will have registers it expects
+  // to survive the call to the callee. If we deoptimize the callee the only
+  // way we can restore these registers is to have the oldest interpreter
+  // frame that we create restore these values. That is what this routine
+  // will accomplish.
+
+  // At the moment we have modified c2 to not have any callee save registers
+  // so this problem does not exist and this routine is just a place holder.
+
+  assert(f->is_interpreted_frame(), "must be interpreted");
+}
 //-----------------------------------------------------------------------------
 
 // Non-product code

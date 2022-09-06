@@ -326,7 +326,7 @@ class CompiledStaticCall: public NativeCall {
   friend CompiledStaticCall* compiledStaticCall_at(Relocation* call_site);
 
   // Code
-#if (defined(AARCH64) || defined(RISCV64) )&& !defined(ZERO)
+#if (defined(AARCH64) || defined(RISCV64))&& !defined(ZERO)
   static address emit_to_interp_stub(CodeBuffer &cbuf, address mark);
 #else
   static address emit_to_interp_stub(CodeBuffer &cbuf);

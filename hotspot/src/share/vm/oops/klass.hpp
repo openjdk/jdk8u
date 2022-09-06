@@ -529,6 +529,7 @@ protected:
   // For classes, this returns the name with a leading 'L' and a trailing ';'
   //     and the package separators as '/'.
   virtual const char* signature_name() const;
+  const char* external_kind() const;
 
   // garbage collection support
   virtual void oop_follow_contents(oop obj) = 0;

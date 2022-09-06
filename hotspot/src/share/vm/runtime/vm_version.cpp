@@ -83,6 +83,9 @@ int Abstract_VM_Version::_vm_build_number = 0;
 bool Abstract_VM_Version::_initialized = false;
 int Abstract_VM_Version::_parallel_worker_threads = 0;
 bool Abstract_VM_Version::_parallel_worker_threads_initialized = false;
+const char* Abstract_VM_Version::_features_string = "";
+const char* VM_Version::_features_str;
+
 
 void Abstract_VM_Version::initialize() {
   if (_initialized) {

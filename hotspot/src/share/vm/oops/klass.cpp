@@ -621,6 +621,11 @@ const char* Klass::signature_name() const {
   if (name() == NULL)  return "<unknown>";
   return name()->as_C_string();
 }
+const char* Klass::external_kind() const {
+  if (is_interface()) return "interface";
+  if (is_abstract()) return "abstract class";
+  return "class";
+}
 
 // Unless overridden, modifier_flags is 0.
 jint Klass::compute_modifier_flags(TRAPS) const {

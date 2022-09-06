@@ -506,10 +506,10 @@ void InterpreterMacroAssembler::dispatch_base(TosState state,
 
   Label safepoint;
   address* const safepoint_table = Interpreter::safept_table(state);
-  bool needs_thread_local_poll = generate_poll &&
+   /* bool needs_thread_local_poll = generate_poll &&
     SafepointMechanism::uses_thread_local_poll() && table != safepoint_table;
 
-  /*if (needs_thread_local_poll) {
+if (needs_thread_local_poll) {
     NOT_PRODUCT(block_comment("Thread-local Safepoint poll"));
     ld(t1, Address(xthread, Thread::polling_page_offset()));
     andi(t1, t1, 1 << exact_log2(SafepointMechanism::poll_bit()));
@@ -528,14 +528,14 @@ void InterpreterMacroAssembler::dispatch_base(TosState state,
   ld(t1, Address(t1));
   jr(t1);
 
-  if (needs_thread_local_poll) {
+ /* if (needs_thread_local_poll) {
     bind(safepoint);
     la(t1, ExternalAddress((address)safepoint_table));
     slli(Rs, Rs, 3);
     add(t1, t1, Rs);
     ld(t1, Address(t1));
     jr(t1);
-  }
+  }*/
 }
 
 void InterpreterMacroAssembler::dispatch_only(TosState state, bool generate_poll, Register Rs) {

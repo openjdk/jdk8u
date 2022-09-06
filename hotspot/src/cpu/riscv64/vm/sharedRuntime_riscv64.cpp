@@ -1182,12 +1182,12 @@ static void gen_special_dispatch(MacroAssembler* masm,
 //    return to caller
 //
 nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
-                                                const methodHandle& method,
+                                                 methodHandle method,
                                                 int compile_id,
                                                 BasicType* in_sig_bt,
                                                 VMRegPair* in_regs,
-                                                BasicType ret_type,
-                                                address critical_entry) {
+                                                BasicType ret_type
+                                                ) {
   assert_cond(masm != NULL && in_sig_bt != NULL && in_regs != NULL);
   if (method->is_method_handle_intrinsic()) {
     vmIntrinsics::ID iid = method->intrinsic_id();
@@ -1214,7 +1214,7 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
                                        (OopMapSet*)NULL);
   }
   bool is_critical_native = true;
-  address native_func = critical_entry;
+  address native_func = method->critical_native_function();
   if (native_func == NULL) {
     native_func = method->native_function();
     is_critical_native = false;
@@ -1800,13 +1800,13 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
   }
 
   // check for safepoint operation in progress and/or pending suspend requests
-  Label safepoint_in_progress, safepoint_in_progress_done;
+ /* Label safepoint_in_progress, safepoint_in_progress_done;
   {
     __ safepoint_poll_acquire(safepoint_in_progress);
     __ lwu(t0, Address(xthread, JavaThread::suspend_flags_offset()));
     __ bnez(t0, safepoint_in_progress);
     __ bind(safepoint_in_progress_done);
-  }
+  }*/
 
   // change thread state
   Label after_transition;
@@ -1998,7 +1998,7 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
   __ j(reguard_done);
 
   // SLOW PATH safepoint
-  {
+  /*{
     __ block_comment("safepoint {");
     __ bind(safepoint_in_progress);
 
@@ -2029,7 +2029,7 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
 
     __ j(safepoint_in_progress_done);
     __ block_comment("} safepoint");
-  }
+  }*/
 
   // SLOW PATH dtrace support
   {
@@ -2683,7 +2683,7 @@ SafepointBlob* SharedRuntime::generate_handler_blob(address call_ptr, int poll_t
   __ bind(noException);
 
   Label no_adjust, bail;
-  if (SafepointMechanism::uses_thread_local_poll() && !cause_return) {
+  /*if (SafepointMechanism::uses_thread_local_poll() && !cause_return) {
     // If our stashed return pc was modified by the runtime we avoid touching it
     __ ld(t0, Address(fp, wordSize));
     __ bne(x18, t0, no_adjust);
@@ -2706,7 +2706,7 @@ SafepointBlob* SharedRuntime::generate_handler_blob(address call_ptr, int poll_t
     // Adjust return pc forward to step over the safepoint poll instruction
     __ add(x18, x18, NativeInstruction::instruction_size);
     __ sd(x18, Address(fp, wordSize));
-  }
+  }*/
 
   __ bind(no_adjust);
   // Normal exit, restore registers and exit.

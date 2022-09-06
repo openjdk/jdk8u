@@ -915,15 +915,57 @@ void TemplateTable::aload(int n)
   __ ld(x10, iaddress(n));
 }
 
-//void TemplateTable::aload_0() {
- // aload_0_internal();
-//}
+void TemplateTable::aload_0() {
+  if (RewriteFrequentPairs ) {
+    Label rewrite, done;
+    const Register bc = x14;
+
+    // get next bytecode
+    __ load_unsigned_byte(x11, at_bcp(Bytecodes::length_for(Bytecodes::_aload_0)));
+
+    // if _getfield then wait with rewrite
+    __ mv(t1, Bytecodes::Bytecodes::_getfield);
+    __ beq(x11, t1, done);
+
+    // if _igetfield then rewrite to _fast_iaccess_0
+    assert(Bytecodes::java_code(Bytecodes::_fast_iaccess_0) == Bytecodes::_aload_0, "fix bytecode definition");
+    __ mv(t1, Bytecodes::_fast_igetfield);
+    __ mv(bc, Bytecodes::_fast_iaccess_0);
+    __ beq(x11, t1, rewrite);
+
+    // if _agetfield then rewrite to _fast_aaccess_0
+    assert(Bytecodes::java_code(Bytecodes::_fast_aaccess_0) == Bytecodes::_aload_0, "fix bytecode definition");
+    __ mv(t1, Bytecodes::_fast_agetfield);
+    __ mv(bc, Bytecodes::_fast_aaccess_0);
+    __ beq(x11, t1, rewrite);
+
+    // if _fgetfield then rewrite to _fast_faccess_0
+    assert(Bytecodes::java_code(Bytecodes::_fast_faccess_0) == Bytecodes::_aload_0, "fix bytecode definition");
+    __ mv(t1, Bytecodes::_fast_fgetfield);
+    __ mv(bc, Bytecodes::_fast_faccess_0);
+    __ beq(x11, t1, rewrite);
+
+    // else rewrite to _fast_aload0
+    assert(Bytecodes::java_code(Bytecodes::_fast_aload_0) == Bytecodes::_aload_0, "fix bytecode definition");
+    __ mv(bc, Bytecodes::Bytecodes::_fast_aload_0);
+
+    // rewrite
+    // bc: new bytecode
+    __ bind(rewrite);
+    patch_bytecode(Bytecodes::_aload_0, bc, x11, false);
+
+    __ bind(done);
+  }
+
+  // Do actual aload_0 (must do this after patch_bytecode which might call VM and GC might change oop).
+  aload(0);
+}
 
 /*void TemplateTable::nofast_aload_0() {
   aload_0_internal(may_not_rewrite);
 }*/
 
-/*void TemplateTable::aload_0_internal(RewriteControl rc) {
+void TemplateTable::aload_0_internal(RewriteControl rc) {
   // According to bytecode histograms, the pairs:
   //
   // _aload_0, _fast_igetfield
@@ -989,7 +1031,7 @@ void TemplateTable::aload(int n)
   // Do actual aload_0 (must do this after patch_bytecode which might call VM and GC might change oop).
   aload(0);
 }
-*/
+
 void TemplateTable::istore()
 {
   transition(itos, vtos);

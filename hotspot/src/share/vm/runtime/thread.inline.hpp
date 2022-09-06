@@ -59,14 +59,18 @@ inline jlong Thread::cooked_allocated_bytes() {
   return allocated_bytes;
 }
 
-#if defined(PPC64) || defined (AARCH64)
-inline JavaThreadState JavaThread::thread_state() const    {
-  return (JavaThreadState) OrderAccess::load_acquire((volatile jint*)&_thread_state);
+inline bool JavaThread::stack_reserved_zone_disabled() {
+  return _stack_guard_state == stack_guard_reserved_disabled;
 }
 
-inline void JavaThread::set_thread_state(JavaThreadState s) {
+#if defined(PPC64) || defined (AARCH64)  || defined (RISCV64)
+//inline JavaThreadState JavaThread::thread_state() const    {
+  //return (JavaThreadState) OrderAccess::load_acquire((volatile jint*)&_thread_state);
+//}
+
+/*inline void JavaThread::set_thread_state(JavaThreadState s) {
   OrderAccess::release_store((volatile jint*)&_thread_state, (jint)s);
-}
+}*/
 #endif
 
 inline void JavaThread::set_done_attaching_via_jni() {

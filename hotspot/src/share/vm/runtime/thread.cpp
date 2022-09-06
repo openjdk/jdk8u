@@ -2479,6 +2479,9 @@ void JavaThread::java_resume() {
   }
 }
 
+size_t JavaThread::_stack_reserved_zone_size = 0;
+size_t JavaThread::_stack_yellow_zone_size = 0;
+size_t JavaThread::_stack_shadow_zone_size = 0;
 void JavaThread::create_stack_guard_pages() {
   if (!os::uses_stack_guard_pages() ||
       _stack_guard_state != stack_guard_unused ||
@@ -2508,6 +2511,24 @@ void JavaThread::create_stack_guard_pages() {
       warning("Attempt to deallocate stack guard pages failed.");
     }
   }
+}
+
+void JavaThread::enable_stack_reserved_zone() {
+  assert(_stack_guard_state == stack_guard_reserved_disabled, "inconsistent state");
+
+  // The base notation is from the stack's point of view, growing downward.
+  // We need to adjust it to work correctly with guard_memory()
+  address base = stack_reserved_zone_base() - stack_reserved_zone_size();
+
+  guarantee(base < stack_base(),"Error calculating stack reserved zone");
+  guarantee(base < os::current_stack_pointer(),"Error calculating stack reserved zone");
+
+  if (os::guard_memory((char *) base, stack_reserved_zone_size())) {
+    _stack_guard_state = stack_guard_enabled;
+  } else {
+    warning("Attempt to guard stack reserved zone failed.");
+  }
+  enable_register_stack_guard();
 }
 
 void JavaThread::remove_stack_guard_pages() {
@@ -2549,6 +2570,24 @@ void JavaThread::enable_stack_yellow_zone() {
     warning("Attempt to guard stack yellow zone failed.");
   }
   enable_register_stack_guard();
+}
+void JavaThread::disable_stack_yellow_reserved_zone() {
+  assert(_stack_guard_state != stack_guard_unused, "must be using guard pages.");
+  assert(_stack_guard_state != stack_guard_yellow_reserved_disabled, "already disabled");
+
+  // Simply return if called for a thread that does not use guard pages.
+  if (_stack_guard_state == stack_guard_unused) return;
+
+  // The base notation is from the stacks point of view, growing downward.
+  // We need to adjust it to work correctly with guard_memory()
+  address base = stack_red_zone_base();
+
+  if (os::unguard_memory((char *)base, stack_yellow_reserved_zone_size())) {
+    _stack_guard_state = stack_guard_yellow_reserved_disabled;
+  } else {
+    warning("Attempt to unguard stack yellow zone failed.");
+  }
+  disable_register_stack_guard();
 }
 
 void JavaThread::disable_stack_yellow_zone() {

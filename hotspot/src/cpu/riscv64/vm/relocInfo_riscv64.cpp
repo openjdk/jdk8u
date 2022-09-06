@@ -109,6 +109,11 @@ void poll_Relocation::fix_relocation_after_move(const CodeBuffer* src, CodeBuffe
     MacroAssembler::pd_patch_instruction_size(addr(), MacroAssembler::target_addr_for_insn(old_addr));
   }
 }
-
+void poll_return_Relocation::fix_relocation_after_move(const CodeBuffer* src, CodeBuffer* dest)  {
+  if (NativeInstruction::maybe_cpool_ref(addr())) {
+    address old_addr = old_addr_for(addr(), src, dest);
+    MacroAssembler::pd_patch_instruction_size(addr(), MacroAssembler::target_addr_for_insn(old_addr));
+  }
+}
 void metadata_Relocation::pd_fix_value(address x) {
 }

@@ -239,7 +239,15 @@ void Method::mask_for(int bci, InterpreterOopMap* mask) {
   return;
 }
 
-
+void Method::print_external_name(outputStream *os) const {
+  print_external_name(os, constants()->pool_holder(), name(), signature());
+}
+void Method::print_external_name(outputStream *os, Klass* klass, Symbol* method_name, Symbol* signature) {
+  signature->print_as_signature_external_return_type(os);
+  os->print(" %s.%s(", klass->external_name(), method_name->as_C_string());
+  signature->print_as_signature_external_parameters(os);
+  os->print(")");
+}
 int Method::bci_from(address bcp) const {
 #ifdef ASSERT
   { ResourceMark rm;

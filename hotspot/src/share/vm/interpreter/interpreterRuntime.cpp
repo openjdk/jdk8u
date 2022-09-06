@@ -224,6 +224,13 @@ IRT_ENTRY(void, InterpreterRuntime::multianewarray(JavaThread* thread, jint* fir
   thread->set_vm_result(obj);
 IRT_END
 
+IRT_ENTRY(void, InterpreterRuntime::throw_AbstractMethodErrorWithMethod(JavaThread* thread,
+                                                                        Method* missingMethod))
+  ResourceMark rm(thread);
+  assert(missingMethod != NULL, "sanity");
+  methodHandle m(thread, missingMethod);
+  LinkResolver::throw_abstract_method_error(m, THREAD);
+IRT_END
 
 IRT_ENTRY(void, InterpreterRuntime::register_finalizer(JavaThread* thread, oopDesc* obj))
   assert(obj->is_oop(), "must be a valid oop");

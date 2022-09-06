@@ -298,7 +298,9 @@ void frame::patch_pc(Thread* thread, address pc) {
     _pc = pc;
   }
 }
-
+void frame::pd_gc_epilog() {
+  // nothing done here now
+}
 bool frame::is_interpreted_frame() const  {
   return Interpreter::contains(pc());
 }

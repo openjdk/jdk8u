@@ -39,8 +39,8 @@ class TemplateInterpreterGenerator: public AbstractInterpreterGenerator {
 
   // shared code sequences
   // Converter for native abi result to tosca result
-  address generate_result_handler_for(BasicType type);
-  address generate_slow_signature_handler();
+  //address generate_result_handler_for(BasicType type);
+  //address generate_slow_signature_handler();
   address generate_error_exit(const char* msg);
   address generate_StackOverflowError_handler();
   address generate_exception_handler(const char* name, const char* message) {
@@ -58,18 +58,18 @@ class TemplateInterpreterGenerator: public AbstractInterpreterGenerator {
   address generate_deopt_entry_for(TosState state, int step);
   address generate_safept_entry_for(TosState state, address runtime_entry);
   address generate_abstract_entry(void);
-  address generate_ArrayIndexOutOfBounds_handler();
-  address generate_Reference_get_entry();
+  //address generate_ArrayIndexOutOfBounds_handler();
+  //address generate_Reference_get_entry();
   address generate_CRC32_update_entry();
-  address generate_CRC32_updateBytes_entry(AbstractInterpreter::MethodKind kind);
+  //address generate_CRC32_updateBytes_entry(AbstractInterpreter::MethodKind kind);
   address generate_CRC32C_updateBytes_entry(AbstractInterpreter::MethodKind kind);
-  address generate_deopt_entry_for_rv(TosState state, int step, address continuation = NULL);
+  //address generate_deopt_entry_for(TosState state, int step);
   address generate_native_entry(bool synchronized);
-  address generate_math_entry(AbstractInterpreter::MethodKind kind);
+  //address generate_math_entry(AbstractInterpreter::MethodKind kind);
   void    generate_throw_exception();
-  void lock_method();
+ // void lock_method();
   void bang_stack_shadow_pages(bool native_call);
-  address generate_normal_entry(bool synchronized);
+  //address generate_normal_entry(bool synchronized);
 
   // entry point generator
 //   address generate_method_entry(AbstractInterpreter::MethodKind kind);
@@ -85,7 +85,7 @@ class TemplateInterpreterGenerator: public AbstractInterpreterGenerator {
   void set_entry_points_for_all_bytes();
   void set_safepoints_for_all_bytes();
   void generate_counter_incr(Label* overflow, Label* profile_method, Label* profile_method_continue);
-  void generate_counter_overflow(Label& continue_entry);
+  //void generate_counter_overflow(Label& continue_entry);
 
   // Helpers for generate_and_dispatch
   address generate_trace_code(TosState state)   PRODUCT_RETURN0;
