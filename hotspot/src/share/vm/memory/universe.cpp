@@ -121,6 +121,7 @@ oop Universe::_out_of_memory_error_class_metaspace    = NULL;
 oop Universe::_out_of_memory_error_array_size         = NULL;
 oop Universe::_out_of_memory_error_gc_overhead_limit  = NULL;
 oop Universe::_out_of_memory_error_realloc_objects    = NULL;
+oop Universe::_delayed_stack_overflow_error_message   = NULL;
 objArrayOop Universe::_preallocated_out_of_memory_error_array = NULL;
 volatile jint Universe::_preallocated_out_of_memory_error_avail_count = 0;
 bool Universe::_verify_in_progress                    = false;
@@ -130,6 +131,7 @@ oop Universe::_arithmetic_exception_instance          = NULL;
 oop Universe::_virtual_machine_error_instance         = NULL;
 oop Universe::_vm_exception                           = NULL;
 oop Universe::_allocation_context_notification_obj    = NULL;
+oop Universe::_the_null_sentinel                      = NULL;
 
 Array<int>* Universe::_the_empty_int_array            = NULL;
 Array<u2>* Universe::_the_empty_short_array           = NULL;

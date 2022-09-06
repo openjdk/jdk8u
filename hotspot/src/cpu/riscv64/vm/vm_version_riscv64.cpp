@@ -78,6 +78,7 @@ class VM_Version_StubGenerator: public StubCodeGenerator {
   ~VM_Version_StubGenerator() {}
 };
 
+//int VM_Version::_features_str;
 void VM_Version::get_processor_features() {
   if (FLAG_IS_DEFAULT(UseFMA)) {
     FLAG_SET_DEFAULT(UseFMA, true);

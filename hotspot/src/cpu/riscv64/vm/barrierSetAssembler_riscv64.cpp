@@ -30,7 +30,7 @@
 #include "barrierSetAssembler_riscv64.hpp"
 #include "asm/macroAssembler.hpp"
 #include "globals_riscv64.hpp"
-
+BarrierSetRv* BarrierSetRv::_barrier_set = NULL;
 /*
 class BarrierSetAssembler;
 // This class provides the interface between a barrier implementation and

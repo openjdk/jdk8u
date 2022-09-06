@@ -2749,8 +2749,10 @@ int java_lang_invoke_MemberName::_flags_offset;
 int java_lang_invoke_MemberName::_vmtarget_offset;
 int java_lang_invoke_MemberName::_vmloader_offset;
 int java_lang_invoke_MemberName::_vmindex_offset;
+int java_lang_invoke_MemberName::_method_offset;
 
 int java_lang_invoke_LambdaForm::_vmentry_offset;
+int java_lang_invoke_ResolvedMethodName::_vmtarget_offset;
 
 void java_lang_invoke_MethodHandle::compute_offsets() {
   Klass* klass_oop = SystemDictionary::MethodHandle_klass();

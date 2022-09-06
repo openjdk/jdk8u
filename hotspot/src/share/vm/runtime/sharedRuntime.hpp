@@ -33,6 +33,7 @@
 #include "runtime/threadLocalStorage.hpp"
 #include "utilities/hashtable.hpp"
 #include "utilities/macros.hpp"
+#include "runtime/thread.hpp"
 
 class AdapterHandlerEntry;
 class AdapterHandlerTable;
@@ -197,6 +198,7 @@ class SharedRuntime: AllStatic {
   static void    throw_NullPointerException_at_call(JavaThread* thread);
   static void    throw_StackOverflowError(JavaThread* thread);
   static void    throw_delayed_StackOverflowError(JavaThread* thread);
+  static void    throw_StackOverflowError_common(JavaThread* thread, bool delayed);
   static address continuation_for_implicit_exception(JavaThread* thread,
                                                      address faulting_pc,
                                                      ImplicitExceptionKind exception_kind);
@@ -397,13 +399,13 @@ class SharedRuntime: AllStatic {
                               const BasicType *sig_bt,
                               const VMRegPair *regs);
 
-  static nmethod* generate_native_wrapper(MacroAssembler* masm,
+  /*static nmethod* generate_native_wrapper(MacroAssembler* masm,
                                           const methodHandle& method,
                                           int compile_id,
                                           BasicType* sig_bt,
                                           VMRegPair* regs,
                                           BasicType ret_type,
-                                          address critical_entry);
+                                          address critical_entry);*/
   // Generate I2C and C2I adapters. These adapters are simple argument marshalling
   // blobs. Unlike adapters in the tiger and earlier releases the code in these
   // blobs does not create a new frame and are therefore virtually invisible

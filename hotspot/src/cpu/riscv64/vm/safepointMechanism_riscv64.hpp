@@ -36,10 +36,10 @@ class SafepointMechanism : public AllStatic {
     _global_page_poll,
     _thread_local_poll
   };
-  static PollingType _polling_type;
+  //static PollingType _polling_type;
   static void* _poll_armed_value;
   static void* _poll_disarmed_value;
-  static void set_uses_thread_local_poll()            { _polling_type     = _thread_local_poll; }
+ //static void set_uses_thread_local_poll()            { _polling_type     = _thread_local_poll; }
 
   static void* poll_armed_value()                     { return _poll_armed_value; }
   static void* poll_disarmed_value()                  { return _poll_disarmed_value; }
@@ -62,8 +62,8 @@ class SafepointMechanism : public AllStatic {
 public:
   static intptr_t poll_bit() { return _poll_bit; }
 
-  static bool uses_global_page_poll() { return _polling_type == _global_page_poll; }
-  static bool uses_thread_local_poll() { return _polling_type == _thread_local_poll; }
+  //static bool uses_global_page_poll() { return _polling_type == _global_page_poll; }
+  //static bool uses_thread_local_poll() { return _polling_type == _thread_local_poll; }
 
   static bool supports_thread_local_poll() {
 #ifdef THREAD_LOCAL_POLL

@@ -82,7 +82,13 @@ void VtableStub::print_on(outputStream* st) const {
              index(), receiver_location(), code_begin(), code_end());
 }
 
-
+int VtableStub::pd_code_size_limit(bool is_vtable_stub) {
+  if (TraceJumps || DebugVtables || CountCompiledCalls || VerifyOops) {
+    return 1000;
+  }
+  int size = is_vtable_stub ? 60 : 192; // Plain + safety
+  return size;
+  }
 // -----------------------------------------------------------------------------------------
 // Implementation of VtableStubs
 //

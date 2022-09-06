@@ -58,6 +58,7 @@
 #include "utilities/hashtable.inline.hpp"
 #include "utilities/macros.hpp"
 #include "utilities/xmlstream.hpp"
+#include "runtime/thread.inline.hpp"
 #ifdef TARGET_ARCH_x86
 # include "nativeInst_x86.hpp"
 # include "vmreg_x86.inline.hpp"
@@ -601,7 +602,28 @@ oop SharedRuntime::retrieve_receiver( Symbol* sig, frame caller ) {
   assert(Universe::heap()->is_in(result) && result->is_oop(), "receiver must be an oop");
   return result;
 }
+JRT_ENTRY(void, SharedRuntime::throw_delayed_StackOverflowError(JavaThread* thread))
+  throw_StackOverflowError_common(thread, true);
+JRT_END
 
+void SharedRuntime::throw_StackOverflowError_common(JavaThread* thread, bool delayed) {
+  // We avoid using the normal exception construction in this case because
+  // it performs an upcall to Java, and we're already out of stack space.
+  Thread* THREAD = thread;
+  Klass* k = SystemDictionary::StackOverflowError_klass();
+  oop exception_oop = InstanceKlass::cast(k)->allocate_instance(CHECK);
+  if (delayed) {
+    java_lang_Throwable::set_message(exception_oop,
+                                     Universe::delayed_stack_overflow_error_message());
+  }
+  Handle exception (thread, exception_oop);
+  if (StackTraceInThrowable) {
+    java_lang_Throwable::fill_in_stack_trace(exception);
+  }
+  // Increment counter for hs_err file reporting
+  Atomic::inc(&Exceptions::_stack_overflow_errors);
+  throw_and_post_jvmti_exception(thread, exception);
+}
 
 void SharedRuntime::throw_and_post_jvmti_exception(JavaThread *thread, Handle h_exception) {
   if (JvmtiExport::can_post_on_exceptions()) {
@@ -2080,6 +2102,13 @@ void SharedRuntime::print_call_statistics(int comp_total) {
 }
 #endif
 
+JRT_LEAF(void, SharedRuntime::enable_stack_reserved_zone(JavaThread* thread))
+  assert(thread->is_Java_thread(), "Only Java threads have a stack reserved zone");
+  if (thread->stack_reserved_zone_disabled()) {
+  thread->enable_stack_reserved_zone();
+  }
+  thread->set_reserved_stack_activation(thread->stack_base());
+JRT_END
 
 // A simple wrapper class around the calling convention information
 // that allows sharing of adapters for the same calling convention.

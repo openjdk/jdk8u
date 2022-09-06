@@ -135,7 +135,16 @@ VtableStub* VtableStubs::create_vtable_stub(int vtable_index) {
   __ jr(t0);
 
   masm->flush();
-  bookkeeping(masm, tty, s, npe_addr, ame_addr, true, vtable_index, slop_bytes, 0);
+ // bookkeeping(masm, tty, s, npe_addr, ame_addr, true, vtable_index, slop_bytes, 0);
+   if (PrintMiscellaneous && (WizardMode || Verbose)) {
+    tty->print_cr("vtable #%d at "PTR_FORMAT"[%d] left over: %d",
+                  vtable_index, p2i(s->entry_point()),
+                  (int)(s->code_end() - s->entry_point()),
+                  (int)(s->code_end() - __ pc()));
+  }
+  guarantee(__ pc() <= s->code_end(), "overflowed buffer");
+
+  s->set_exception_points(npe_addr, ame_addr);
 
   return s;
 }
@@ -244,11 +253,21 @@ VtableStub* VtableStubs::create_itable_stub(int itable_index) {
   // We force resolving of the call site by jumping to the "handle
   // wrong method" stub, and so let the interpreter runtime do all the
   // dirty work.
-  assert(SharedRuntime::get_handle_wrong_method_stub() != NULL, "check initialization order");
+ assert(SharedRuntime::get_handle_wrong_method_stub() != NULL, "check initialization order");
   __ far_jump(RuntimeAddress(SharedRuntime::get_handle_wrong_method_stub()));
 
   masm->flush();
-  bookkeeping(masm, tty, s, npe_addr, ame_addr, false, itable_index, slop_bytes, 0);
+  /* bookkeeping(masm, tty, s, npe_addr, ame_addr, false, itable_index, slop_bytes, 0);*/
+  if (PrintMiscellaneous && (WizardMode || Verbose)) {
+    tty->print_cr("itable #%d at "PTR_FORMAT"[%d] left over: %d",
+                  itable_index, p2i(s->entry_point()),
+                  (int)(s->code_end() - s->entry_point()),
+                  (int)(s->code_end() - __ pc()));
+  }
+  guarantee(__ pc() <= s->code_end(), "overflowed buffer");
+
+  s->set_exception_points(npe_addr, ame_addr);
+
 
   return s;
 }

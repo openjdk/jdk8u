@@ -42,7 +42,7 @@ class MacroAssembler: public Assembler {
   virtual ~MacroAssembler() {}
 
   void safepoint_poll(Label& slow_path);
-  void safepoint_poll_acquire(Label& slow_path);
+ // void safepoint_poll_acquire(Label& slow_path);
 
   // Alignment
   void align(int modulus);

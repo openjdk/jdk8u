@@ -213,6 +213,14 @@ class Symbol : private SymbolBase {
   // See Klass::external_name()
   const char* as_klass_external_name() const;
   const char* as_klass_external_name(char* buf, int size) const;
+    // Treating the symbol as a signature, print the return
+  // type to the outputStream. Prints external names as 'double' or
+  // 'java.lang.Object[][]'.
+  void print_as_signature_external_return_type(outputStream *os);
+  // Treating the symbol as a signature, print the parameter types
+  // seperated by ', ' to the outputStream.  Prints external names as
+  //  'double' or 'java.lang.Object[][]'.
+  void print_as_signature_external_parameters(outputStream *os);
 
   // Printing
   void print_symbol_on(outputStream* st = NULL) const;

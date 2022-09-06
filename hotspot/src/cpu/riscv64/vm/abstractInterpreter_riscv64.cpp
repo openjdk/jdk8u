@@ -32,7 +32,26 @@
 #include "utilities/align.hpp"
 #include "utilities/debug.hpp"
 #include "utilities/macros.hpp"
-
+#include "asm/macroAssembler.hpp"
+#include "interpreter/bytecodeHistogram.hpp"
+#include "interpreter/interpreterGenerator.hpp"
+#include "interpreter/interpreterRuntime.hpp"
+#include "interpreter/templateTable.hpp"
+#include "interpreter/bytecodeTracer.hpp"
+#include "oops/arrayOop.hpp"
+#include "oops/methodData.hpp"
+#include "oops/oop.inline.hpp"
+#include "prims/jvmtiExport.hpp"
+#include "prims/jvmtiThreadState.hpp"
+#include "runtime/arguments.hpp"
+#include "runtime/deoptimization.hpp"
+#include "runtime/sharedRuntime.hpp"
+#include "runtime/stubRoutines.hpp"
+#include "runtime/synchronizer.hpp"
+#include "runtime/timer.hpp"
+#include "runtime/vframeArray.hpp"
+#include "utilities/debug.hpp"
+#include <sys/types.h>
 
 int AbstractInterpreter::BasicType_as_index(BasicType type) {
   int i = 0;
@@ -71,7 +90,48 @@ int AbstractInterpreter::size_top_interpreter_activation(Method* method) {
                            Interpreter::stackElementWords;
   return (overhead_size + method_stack + stub_code);
 }
+address AbstractInterpreterGenerator::generate_method_entry(
+                                        AbstractInterpreter::MethodKind kind) {
+  // determine code generation flags
+  bool synchronized = false;
+  address entry_point = NULL;
 
+  switch (kind) {
+  case Interpreter::zerolocals             :                                                                             break;
+  case Interpreter::zerolocals_synchronized: synchronized = true;                                                        break;
+  case Interpreter::native                 : entry_point = ((InterpreterGenerator*) this)->generate_native_entry(false); break;
+  case Interpreter::native_synchronized    : entry_point = ((InterpreterGenerator*) this)->generate_native_entry(true);  break;
+  case Interpreter::empty                  : entry_point = ((InterpreterGenerator*) this)->generate_empty_entry();       break;
+  case Interpreter::accessor               : entry_point = ((InterpreterGenerator*) this)->generate_accessor_entry();    break;
+  case Interpreter::abstract               : entry_point = ((InterpreterGenerator*) this)->generate_abstract_entry();    break;
+
+  case Interpreter::java_lang_math_sin     : // fall thru
+  case Interpreter::java_lang_math_cos     : // fall thru
+  case Interpreter::java_lang_math_tan     : // fall thru
+  case Interpreter::java_lang_math_abs     : // fall thru
+  case Interpreter::java_lang_math_log     : // fall thru
+  case Interpreter::java_lang_math_log10   : // fall thru
+  case Interpreter::java_lang_math_sqrt    : // fall thru
+  case Interpreter::java_lang_math_pow     : // fall thru
+  case Interpreter::java_lang_math_exp     : entry_point = ((InterpreterGenerator*) this)->generate_math_entry(kind);    break;
+  case Interpreter::java_lang_ref_reference_get
+                                           : entry_point = ((InterpreterGenerator*)this)->generate_Reference_get_entry(); break;
+  case Interpreter::java_util_zip_CRC32_update
+                                           : entry_point = ((InterpreterGenerator*)this)->generate_CRC32_update_entry();  break;
+  case Interpreter::java_util_zip_CRC32_updateBytes
+                                           : // fall thru
+  case Interpreter::java_util_zip_CRC32_updateByteBuffer
+                                           : entry_point = ((InterpreterGenerator*)this)->generate_CRC32_updateBytes_entry(kind); break;
+  default                                  : ShouldNotReachHere();                                                       break;
+  }
+
+  if (entry_point) {
+    return entry_point;
+  }
+
+  return ((InterpreterGenerator*) this)->
+                                generate_normal_entry(synchronized);
+}
 // asm based interpreter deoptimization helpers
 int AbstractInterpreter::size_activation(int max_stack,
                                          int temps,
@@ -107,7 +167,9 @@ int AbstractInterpreter::size_activation(int max_stack,
 
   return size;
 }
-
+bool AbstractInterpreter::can_be_compiled(methodHandle m) {
+  return true;
+}
 void AbstractInterpreter::layout_activation(Method* method,
                                             int tempcount,
                                             int popframe_extra_args,

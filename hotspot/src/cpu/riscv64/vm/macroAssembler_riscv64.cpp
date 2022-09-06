@@ -2001,7 +2001,7 @@ void MacroAssembler::lookup_interface_method(Register recv_klass,
          "caller must be same register for non-constant itable index as for method");
 
   // Compute start of first itableOffsetEntry (which is at the end of the vtable).
-  int vtable_base = in_bytes(Klass::vtable_start_offset());
+  int vtable_base = InstanceKlass::vtable_start_offset() * wordSize;
   int itentry_off = itableMethodEntry::method_offset_in_bytes();
   int scan_step   = itableOffsetEntry::size() * wordSize;
   int vte_size    = vtableEntry::size_in_bytes();
@@ -2055,7 +2055,7 @@ void MacroAssembler::lookup_interface_method(Register recv_klass,
 void MacroAssembler::lookup_virtual_method(Register recv_klass,
                                            RegisterOrConstant vtable_index,
                                            Register method_result) {
-  const int base = in_bytes(Klass::vtable_start_offset());
+  const int base = InstanceKlass::vtable_start_offset() * wordSize;
   assert(vtableEntry::size() * wordSize == 8,
          "adjust the scaling in the code below");
   int vtable_offset_in_bytes = base + vtableEntry::method_offset_in_bytes();
@@ -2134,17 +2134,17 @@ void MacroAssembler::serialize_memory(Register thread, Register tmp1, Register t
 }
 
 void MacroAssembler::safepoint_poll(Label& slow_path) {
-  if (SafepointMechanism::uses_thread_local_poll()) {
-    ld(t1, Address(xthread, Thread::polling_page_offset()));
-    andi(t0, t1, SafepointMechanism::poll_bit());
-    bnez(t0, slow_path);
-  } else {
+ // if (SafepointMechanism::uses_thread_local_poll()) {
+  //  ld(t1, Address(xthread, Thread::polling_page_offset()));
+  //  andi(t0, t1, SafepointMechanism::poll_bit());
+  //  bnez(t0, slow_path);
+  //} else {
     int32_t offset = 0;
     la_patchable(t0, ExternalAddress(SafepointSynchronize::address_of_state()), offset);
     lwu(t0, Address(t0, offset));
     assert(SafepointSynchronize::_not_synchronized == 0, "rewrite this code");
     bnez(t0, slow_path);
-  }
+ // }
 }
 
 // Just like safepoint_poll, but use an acquiring load for thread-
@@ -2159,7 +2159,7 @@ void MacroAssembler::safepoint_poll(Label& slow_path) {
 // This is to avoid a race when we're in a native->Java transition
 // racing the code which wakes up from a safepoint.
 //
-void MacroAssembler::safepoint_poll_acquire(Label& slow_path) {
+/*void MacroAssembler::safepoint_poll_acquire(Label& slow_path) {
   if (SafepointMechanism::uses_thread_local_poll()) {
     membar(MacroAssembler::AnyAny);
     ld(t1, Address(xthread, Thread::polling_page_offset()));
@@ -2169,7 +2169,7 @@ void MacroAssembler::safepoint_poll_acquire(Label& slow_path) {
   } else {
     safepoint_poll(slow_path);
   }
-}
+}*/
 
 void MacroAssembler::cmpxchgptr(Register oldv, Register newv, Register addr, Register tmp,
                                 Label &succeed, Label *fail) {
@@ -3015,13 +3015,13 @@ void MacroAssembler::reserved_stack_check() {
 
 // Move the address of the polling page into dest.
 void MacroAssembler::get_polling_page(Register dest, address page, int32_t &offset, relocInfo::relocType rtype) {
-  if (SafepointMechanism::uses_thread_local_poll()) {
-    ld(dest, Address(xthread, Thread::polling_page_offset()));
-  } else {
+//  if (SafepointMechanism::uses_thread_local_poll()) {
+  //  ld(dest, Address(xthread, Thread::polling_page_offset()));
+//  } else {
     unsigned long align = (uintptr_t)page & 0xfff;
     assert(align == 0, "polling page must be page aligned");
     la_patchable(dest, Address(page, rtype), offset);
-  }
+//  }
 }
 
 // Move the address of the polling page into dest.

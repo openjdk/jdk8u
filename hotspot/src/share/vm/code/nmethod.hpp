@@ -807,6 +807,7 @@ class nmethodLocker : public StackObj {
     _nm = new_nm;
     lock_nmethod(_nm);
   }
+
 };
 
 #endif // SHARE_VM_CODE_NMETHOD_HPP

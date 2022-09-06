@@ -323,7 +323,11 @@ bool CompiledIC::is_call_to_interpreted() const {
   }
   return is_call_to_interpreted;
 }
-
+bool CompiledIC::is_icholder_call_site(virtual_call_Relocation* call_site) {
+  // This call site might have become stale so inspect it carefully.
+  NativeCall* call = nativeCall_at(call_site->addr());
+  return is_icholder_entry(call->destination());
+}
 
 void CompiledIC::set_to_clean(bool in_use) {
   assert(SafepointSynchronize::is_at_safepoint() || CompiledIC_lock->is_locked() , "MT-unsafe call");

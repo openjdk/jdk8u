@@ -119,6 +119,8 @@ class CodeBlob VALUE_OBJ_CLASS_SPEC {
 
   // Casting
   nmethod* as_nmethod_or_null()                  { return is_nmethod() ? (nmethod*) this : NULL; }
+ // nmethod* as_compiled_method()                  { assert(is_compiled(), "must be compiled"); return (nmethod*) this; }
+
 
   // Boundaries
   address    header_begin() const                { return (address)    this; }

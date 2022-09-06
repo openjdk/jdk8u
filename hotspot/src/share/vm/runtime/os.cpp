@@ -103,7 +103,10 @@ int os::snprintf(char* buf, size_t len, const char* fmt, ...) {
   va_end(args);
   return result;
 }
-
+void os::print_instructions(outputStream* st, address pc, int unitsize) {
+  st->print_cr("Instructions: (pc=" PTR_FORMAT ")", p2i(pc));
+  print_hex_dump(st, pc - 256, pc + 256, unitsize);
+}
 // Fill in buffer with current local time as an ISO-8601 string.
 // E.g., yyyy-mm-ddThh:mm:ss-zzzz.
 // Returns buffer, or NULL if it failed.

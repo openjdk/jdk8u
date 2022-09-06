@@ -27,6 +27,16 @@
 #ifndef CPU_RISCV64_VM_VMREG_RISCV64_INLINE_HPP
 #define CPU_RISCV64_VM_VMREG_RISCV64_INLINE_HPP
 
+inline VMReg RegisterImpl::as_VMReg() {
+  if( this==noreg ) return VMRegImpl::Bad();
+  return VMRegImpl::as_VMReg(encoding() << 1 );
+}
+
+inline VMReg FloatRegisterImpl::as_VMReg() {
+  return VMRegImpl::as_VMReg((encoding() << 1) + ConcreteRegisterImpl::max_gpr);
+}
+
+
 inline bool VMRegImpl::is_Register() {
   return (unsigned int) value() < (unsigned int) ConcreteRegisterImpl::max_gpr;
 }

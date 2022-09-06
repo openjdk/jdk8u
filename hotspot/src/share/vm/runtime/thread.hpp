@@ -915,6 +915,7 @@ class JavaThread: public Thread {
     stack_guard_yellow_disabled,// disabled (temporarily) after stack overflow
     stack_guard_enabled,         // enabled
     stack_guard_yellow_reserved_disabled,// disabled (temporarily) after stack overflo
+    stack_guard_reserved_disabled
   };
 
  private:
@@ -1060,7 +1061,7 @@ class JavaThread: public Thread {
   address last_Java_pc(void)                     { return _anchor.last_Java_pc(); }
 
   // Safepoint support
-#if !(defined(PPC64) || defined(AARCH64)) 
+#if !(defined(PPC64) || defined(AARCH64)) || defined(RISCV64) 
   JavaThreadState thread_state() const           { return _thread_state; }
   void set_thread_state(JavaThreadState s)       { _thread_state = s;    }
 #else
@@ -1293,6 +1294,7 @@ class JavaThread: public Thread {
   void set_exception_handler_pc(address a)       { _exception_handler_pc = a; }
   void set_is_method_handle_return(bool value)   { _is_method_handle_return = value ? 1 : 0; }
   static size_t _stack_reserved_zone_size;
+  static size_t _stack_yellow_zone_size;
 
   void clear_exception_oop_and_pc() {
     set_exception_oop(NULL);
@@ -1318,6 +1320,8 @@ class JavaThread: public Thread {
     assert(_stack_shadow_zone_size > 0, "Don't call this before the field is initialized.");
     return _stack_shadow_zone_size;
   }
+  void enable_stack_reserved_zone();
+  inline bool stack_reserved_zone_disabled();
   static size_t stack_reserved_zone_size() {
     // _stack_reserved_zone_size may be 0. This indicates the feature is off.
     return _stack_reserved_zone_size;
@@ -1352,6 +1356,10 @@ class JavaThread: public Thread {
   inline bool stack_guard_zone_unused();
   inline bool stack_yellow_zone_disabled();
   inline bool stack_yellow_zone_enabled();
+
+  static size_t stack_yellow_reserved_zone_size() {
+    return _stack_yellow_zone_size + _stack_reserved_zone_size;
+  }
 
   // Attempt to reguard the stack after a stack overflow may have occurred.
   // Returns true if (a) guard pages are not needed on this thread, (b) the
