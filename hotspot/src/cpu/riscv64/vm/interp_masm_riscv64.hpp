@@ -83,6 +83,21 @@ class InterpreterMacroAssembler: public MacroAssembler {
   }
 
   void get_dispatch();
+  /*void g1_write_barrier_pre(Register obj,
+                            Register pre_val,
+                            Register thread,
+                            Register tmp,
+                            bool tosca_live,
+                            bool expand_call);
+
+  void g1_write_barrier_post(Register store_addr,
+                             Register new_val,
+                             Register thread,
+                             Register tmp,
+                             Register tmp2);
+                                // Stores
+  void store_check(Register obj);                // store check for obj - register is destroyed afterwards
+  void store_check(Register obj, Address dst);   */
 
   // Helpers for runtime call arguments/results
   void get_method(Register reg) {

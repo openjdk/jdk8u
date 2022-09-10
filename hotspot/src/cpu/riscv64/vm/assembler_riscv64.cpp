@@ -1001,3 +1001,34 @@ Address::Address(address target, relocInfo::relocType rtype) : _base(noreg), _of
     break;
   }
 }
+
+#define __ as->
+void Address::lea(MacroAssembler *as, Register r) const {
+  Relocation* reloc = _rspec.reloc();
+  relocInfo::relocType rtype = (relocInfo::relocType) reloc->type();
+
+  switch(_mode) {
+  case base_plus_offset: {
+    if (_offset == 0 && _base == r) // it's a nop
+      break;
+    if (_offset > 0)
+      __ add(r, _base, _offset);
+    else
+      __ sub(r, _base, -_offset);
+      break;
+  }
+  case base_plus_offset_reg: {
+    //__ add(r, _base, _index, _ext.op(), MAX(_ext.shift(), 0));
+    break;
+  }
+  case literal: {
+    if (rtype == relocInfo::none)
+      __ mv(r, target());
+    else
+      __ movptr(r, (uint64_t)target());
+    break;
+  }
+  default:
+    ShouldNotReachHere();
+  }
+}

@@ -144,17 +144,69 @@ const FloatRegister g_FPArgReg[Argument::n_float_register_parameters_c] = {
 };
 
 #define assert_cond(ARG1) vmassert(ARG1, #ARG1)
+class PrePost {
+  int _offset;
+  Register _r;
+public:
+  PrePost(Register reg, int o) : _r(reg), _offset(o) { }
+  int offset() { return _offset; }
+  Register reg() { return _r; }
+};
 
+class Pre : public PrePost {
+public:
+  Pre(Register reg, int o) : PrePost(reg, o) { }
+};
+class Post : public PrePost {
+public:
+  Post(Register reg, int o) : PrePost(reg, o) { }
+};
+
+namespace ext
+{
+  enum operation { uxtb, uxth, uxtw, uxtx, sxtb, sxth, sxtw, sxtx };
+};
 // Addressing modes
 class Address {
  public:
 
-  enum mode { no_mode, base_plus_offset, pcrel, literal };
+  //enum mode { no_mode, base_plus_offset, pcrel, literal };
+    enum mode { no_mode, base_plus_offset, pre, post, pcrel,
+              base_plus_offset_reg, literal };
+      // Shift and extend for base reg + reg offset addressing
+  class extend {
+    int _option, _shift;
+    ext::operation _op;
+  public:
+    extend() { }
+    extend(int s, int o, ext::operation op) : _shift(s), _option(o), _op(op) { }
+    int option() const{ return _option; }
+    int shift() const { return _shift; }
+    ext::operation op() const { return _op; }
+  };
+  class uxtw : public extend {
+  public:
+    uxtw(int shift = -1): extend(shift, 0b010, ext::uxtw) { }
+  };
+  class lsl : public extend {
+  public:
+    lsl(int shift = -1): extend(shift, 0b011, ext::uxtx) { }
+  };
+  class sxtw : public extend {
+  public:
+    sxtw(int shift = -1): extend(shift, 0b110, ext::sxtw) { }
+  };
+  class sxtx : public extend {
+  public:
+    sxtx(int shift = -1): extend(shift, 0b111, ext::sxtx) { }
+  };
 
  private:
   Register _base;
   int64_t _offset;
   enum mode _mode;
+  Register _index;
+  extend _ext;
 
   RelocationHolder _rspec;
 
@@ -162,6 +214,7 @@ class Address {
   // register to reach it. Otherwise if near we can do PC-relative
   // addressing.
   address          _target;
+  bool _is_lval;
 
  public:
   Address()
@@ -190,6 +243,13 @@ class Address {
       _mode(literal),
       _rspec(rspec),
       _target(target)  { }
+  Address(Register r, Register r1, extend ext = lsl())
+    : _mode(base_plus_offset_reg), _base(r), _index(r1),
+    _ext(ext), _offset(0), _target(0) { }
+  Address(Pre p)
+    : _mode(pre), _base(p.reg()), _offset(p.offset()) { }
+  Address(Post p)
+    : _mode(post), _base(p.reg()), _offset(p.offset()), _target(0) { }
   Address(address target, relocInfo::relocType rtype = relocInfo::external_word_type);
 
   const Register base() const {
@@ -199,11 +259,13 @@ class Address {
   long offset() const {
     return _offset;
   }
-
+  Register index() const {
+    return _index;
+  }
   mode getMode() const {
     return _mode;
   }
-
+  void lea(MacroAssembler *, Register) const;//Adding new function 
   bool uses(Register reg) const { return _base == reg;}
   const address target() const { return _target; }
   const RelocationHolder& rspec() const { return _rspec; }
@@ -372,7 +434,20 @@ public:
   void halt() {
     emit_int32(0);
   }
-
+  //Adding barrier_rv
+  enum barrier_rv {OSHLD = 0b0001, OSHST, OSH, NSHLD=0b0101, NSHST, NSH,
+                ISHLD = 0b1001, ISHST, ISH, LD=0b1101, ST, SY};
+  enum Membar_mask_bits {
+    // We can use ISH for a barrier because the ARM ARM says "This
+    // architecture assumes that all Processing Elements that use the
+    // same operating system or hypervisor are in the same Inner
+    // Shareable shareability domain."
+    StoreStore = ISHST,
+    LoadStore  = ISHLD,
+    LoadLoad   = ISHLD,
+    StoreLoad  = ISH,
+    AnyAny     = ISH
+  };
 // Rigster Instruction
 #define INSN(NAME, op, funct3, funct7)                          \
   void NAME(Register Rd, Register Rs1, Register Rs2) {          \
