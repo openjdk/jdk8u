@@ -1329,7 +1329,31 @@ address InterpreterGenerator::generate_native_entry(bool synchronized) {
     __ bne(t, result_handler, no_oop);
     // Unbox oop result, e.g. JNIHandles::resolve result.
     __ pop(ltos);
-    __ resolve_jobject(x10, xthread, t);
+   // __ resolve_jobject(x10, xthread, t);
+    __ beqz(x10, store_result);   // Use NULL as-is.
+    STATIC_ASSERT(JNIHandles::weak_tag_mask == 1u);
+    //__ tbz(r0, 0, not_weak);    // Test for jweak tag.
+    __ andi(t0,x10,0);
+    __ beqz(t0,not_weak);
+    // Resolve jweak.
+    __ ld(x10, Address(x10, -JNIHandles::weak_tag_value));
+#if INCLUDE_ALL_GCS
+    if (UseG1GC) {
+      __ enter();                   // Barrier may call runtime.
+      __ g1_write_barrier_pre(noreg /* obj */,
+                              x10 /* pre_val */,
+                              xthread /* thread */,
+                              t /* tmp */,
+                              true /* tosca_live */,
+                              true /* expand_call */);
+      __ leave();
+    }
+#endif // INCLUDE_ALL_GCS
+    __ j(store_result);
+    __ bind(not_weak);
+    // Resolve (untagged) jobject.
+    __ ld(x10, Address(x10, 0));
+    __ bind(store_result);
     __ sd(x10, Address(fp, frame::interpreter_frame_oop_temp_offset * wordSize));
     // keep stack depth as expected by pushing oop which will eventually be discarded
     __ push(ltos);
