@@ -754,12 +754,18 @@ void InterpreterGenerator::lock_method() {
   // get synchronization object
   {
     Label done;
+    const int mirror_offset = in_bytes(Klass::java_mirror_offset());
     __ lwu(x10, access_flags);
     __ andi(t0, x10, JVM_ACC_STATIC);
     // get receiver (assume this is frequent case)
     __ ld(x10, Address(xlocals, Interpreter::local_offset_in_bytes(0)));
     __ beqz(t0, done);
-    __ load_mirror(x10, xmethod);
+    //__ load_mirror(x10, xmethod);
+    __ ld(x10, Address(xmethod, Method::const_offset()));
+    __ ld(x10, Address(x10, ConstMethod::constants_offset()));
+    __ ld(x10, Address(x10,
+                           ConstantPool::pool_holder_offset_in_bytes()));
+    __ ld(x10, Address(x10, mirror_offset));
 
 #ifdef ASSERT
     {
@@ -861,11 +867,11 @@ void TemplateInterpreterGenerator::generate_fixed_frame(bool native_call) {
     __ load_mirror(x28, xmethod);
     __ sd(x28, Address(sp, 4 * wordSize));
   } else
-#endif*/
+#endif
   {
     __ load_mirror(t0, xmethod);
     __ sd(t0, Address(sp, 4 * wordSize));
-  }
+  }*/
   __ sd(zr, Address(sp, 5 * wordSize));
 
   __ load_constant_pool_cache(xcpool, xmethod);
@@ -1186,11 +1192,16 @@ address InterpreterGenerator::generate_native_entry(bool synchronized) {
   // pass mirror handle if static call
   {
     Label L;
+    const int mirror_offset = in_bytes(Klass::java_mirror_offset());
     __ lwu(t, Address(xmethod, Method::access_flags_offset()));
     __ andi(t0, t, JVM_ACC_STATIC);
     __ beqz(t0, L);
     // get mirror
-    __ load_mirror(t, xmethod);
+    //__ load_mirror(t, xmethod);
+    __ ld(t, Address(xmethod, Method::const_offset()));
+    __ ld(t, Address(t, ConstMethod::constants_offset()));
+    __ ld(t, Address(t, ConstantPool::pool_holder_offset_in_bytes()));
+    __ ld(t, Address(t, mirror_offset));
     // copy mirror into activation frame
     __ sd(t, Address(fp, frame::interpreter_frame_oop_temp_offset * wordSize));
     // pass handle to mirror
