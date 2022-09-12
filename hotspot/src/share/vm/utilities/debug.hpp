@@ -154,9 +154,8 @@ do {                                                                         \
   #define assert(p,msg)
   #define assert_status(p,status,msg)
   #define assert_if_no_error(cond,msg)
-  #define vmassert(p, ...)
 #endif // #ifdef ASSERT
-
+#define vmassert(p, ...)
 #define precond(p)   assert(p, "precond")
 #define postcond(p)  assert(p, "postcond")
 
