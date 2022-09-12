@@ -29,6 +29,7 @@
 
 #include "asm/register.hpp"
 #include "assembler_riscv64.inline.hpp"
+#include "utilities/debug.hpp"
 
 #define registerSize 64
 
