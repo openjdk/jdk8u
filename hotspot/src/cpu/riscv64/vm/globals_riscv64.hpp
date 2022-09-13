@@ -29,7 +29,7 @@
 
 #include "utilities/globalDefinitions.hpp"
 #include "utilities/macros.hpp"
-#include "memory/allocation.hpp"
+//#include "memory/allocation.hpp"
 
 // Sets the default values for platform dependent flags used by the runtime system.
 // (see globals.hpp)
