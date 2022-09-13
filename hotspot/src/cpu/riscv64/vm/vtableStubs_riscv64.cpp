@@ -100,7 +100,7 @@ VtableStub* VtableStubs::create_vtable_stub(int vtable_index) {
     const ptrdiff_t codesize = __ pc() - start_pc;
     slop_delta = estimate - codesize;  // call_VM varies in length, depending on data
     slop_bytes += slop_delta;
-    assert(slop_delta >= 0, "vtable #%d: Code size estimate (%d) for DebugVtables too small, required: %d", vtable_index, (int)estimate, (int)codesize);
+    vmassert(slop_delta >= 0, "vtable #%d: Code size estimate (%d) for DebugVtables too small, required: %d", vtable_index, (int)estimate, (int)codesize);
 
     __ leave();
     __ bind(L);
