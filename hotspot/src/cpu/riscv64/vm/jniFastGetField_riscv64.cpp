@@ -88,9 +88,11 @@ address JNI_FastGetField::generate_fast_get_int_field0(BasicType type) {
                                               // robj is address dependent on rcounter.
 
 
-  BarrierSetAssembler* bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
+  /*BarrierSetAssembler* bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
   assert_cond(bs != NULL);
-  bs->try_resolve_jobject_in_native(masm, c_rarg0, robj, t0, slow);
+  bs->try_resolve_jobject_in_native(masm, c_rarg0, robj, t0, slow)*/;
+  STATIC_ASSERT(JNIHandles::weak_tag_mask == 1);
+  __ andi(robj, robj, ~JNIHandles::weak_tag_mask);
 
   __ srli(roffset, c_rarg2, 2);                // offset
 

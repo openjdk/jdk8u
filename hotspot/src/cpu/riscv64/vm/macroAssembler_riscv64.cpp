@@ -3138,9 +3138,28 @@ void MacroAssembler::tlab_allocate(Register obj,
                                    Register tmp2,
                                    Label& slow_case,
                                    bool is_far) {
-  BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
-  bs->tlab_allocate(this, obj, var_size_in_bytes, con_size_in_bytes, tmp1, tmp2, slow_case, is_far);
-}
+  assert_cond(masm != NULL);
+  assert_different_registers(obj, tmp2);
+  assert_different_registers(obj, var_size_in_bytes);
+  Register end = tmp2;
+
+   ld(obj, Address(xthread, JavaThread::tlab_top_offset()));
+  if (var_size_in_bytes == noreg) {
+     la(end, Address(obj, con_size_in_bytes));
+  } else {
+     add(end, obj, var_size_in_bytes);
+  }
+   ld(t0, Address(xthread, JavaThread::tlab_end_offset()));
+   bgtu(end, t0, slow_case, is_far);
+
+  // update the tlab top pointer
+   sd(end, Address(xthread, JavaThread::tlab_top_offset()));
+
+  // recover var_size_in_bytes if necessary
+  if (var_size_in_bytes == end) {
+    sub(var_size_in_bytes, var_size_in_bytes, obj);
+  }
+ }
 
 // Defines obj, preserves var_size_in_bytes
 void MacroAssembler::eden_allocate(Register obj,
@@ -3149,11 +3168,61 @@ void MacroAssembler::eden_allocate(Register obj,
                                    Register tmp1,
                                    Label& slow_case,
                                    bool is_far) {
-  BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
-  bs->eden_allocate(this, obj, var_size_in_bytes, con_size_in_bytes, tmp1, slow_case, is_far);
-}
+  assert_cond(masm != NULL);
+  assert_different_registers(obj, var_size_in_bytes, tmp1);
+  if (!Universe::heap()->supports_inline_contig_alloc()) {
+     j(slow_case);
+  } else {
+    Register end = tmp1;
+    Label retry;
+    int32_t offset = 0;
+     bind(retry);
 
+    // Get the current top of the heap
+    ExternalAddress address_top((address) Universe::heap()->top_addr());
+     la_patchable(t2, address_top, offset);
+     addi(t2, t2, offset);
+     lr_d(obj, t2, Assembler::aqrl);
 
+    // Adjust it my the size of our new object
+    if (var_size_in_bytes == noreg) {
+       la(end, Address(obj, con_size_in_bytes));
+    } else {
+       add(end, obj, var_size_in_bytes);
+    }
+
+    // if end < obj then we wrapped around high memory
+     bltu(end, obj, slow_case, is_far);
+
+    Register heap_end = t1;
+    // Get the current end of the heap
+    ExternalAddress address_end((address) Universe::heap()->end_addr());
+    offset = 0;
+     la_patchable(heap_end, address_end, offset);
+     ld(heap_end, Address(heap_end, offset));
+
+     bgtu(end, heap_end, slow_case, is_far);
+    // If heap_top hasn't been changed by some other thread, update it.
+     sc_d(t1, end, t2, Assembler::rl);
+    bnez(t1, retry);
+   incr_allocated_bytes( var_size_in_bytes, con_size_in_bytes, tmp1);
+  }
+ }
+
+void MacroAssembler::incr_allocated_bytes(Register var_size_in_bytes,
+                                               int con_size_in_bytes,
+                                               Register tmp1) {
+  assert_cond(masm != NULL);
+ assert(tmp1->is_valid(), "need temp reg");
+ 
+   ld(tmp1, Address(xthread, in_bytes(JavaThread::allocated_bytes_offset())));
+  if (var_size_in_bytes->is_valid()) {
+    add(tmp1, tmp1, var_size_in_bytes);
+  } else {
+     add(tmp1, tmp1, con_size_in_bytes);
+  }
+   sd(tmp1, Address(xthread, in_bytes(JavaThread::allocated_bytes_offset())));
+ }
 // get_thread() can be called anywhere inside generated code so we
 // need to save whatever non-callee save context might get clobbered
 // by the call to Thread::current() or, indeed, the call setup code.
@@ -3177,7 +3246,8 @@ void MacroAssembler::get_thread(Register thread) {
 
 void MacroAssembler::load_byte_map_base(Register reg) {
   int32_t offset = 0;
-  jbyte *byte_map_base = ((CardTableBarrierSet*)(BarrierSetRv::barrier_set()))->card_table()->byte_map_base();
+  //jbyte *byte_map_base = ((CardTableBarrierSet*)(BarrierSetRv::barrier_set()))->card_table()->byte_map_base();
+  jbyte *byte_map_base = ((CardTableModRefBS*)(Universe::heap()->barrier_set()))->byte_map_base;
   la_patchable(reg, ExternalAddress((address)byte_map_base), offset);
   addi(reg, reg, offset);
 }

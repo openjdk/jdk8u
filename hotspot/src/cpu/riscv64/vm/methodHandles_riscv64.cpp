@@ -137,14 +137,14 @@ void MethodHandles::jump_to_lambda_form(MacroAssembler* _masm,
 
   // Load the invoker, as MH -> MH.form -> LF.vmentry
   __ verify_oop(recv);
-  __ load_heap_oop(method_temp, Address(recv, NONZERO(java_lang_invoke_MethodHandle::form_offset_in_bytes())), temp2);
+  __ load_heap_oop_rv(method_temp, Address(recv, NONZERO(java_lang_invoke_MethodHandle::form_offset_in_bytes())));
   __ verify_oop(method_temp);
-  __ load_heap_oop(method_temp, Address(method_temp, NONZERO(java_lang_invoke_LambdaForm::vmentry_offset_in_bytes())), temp2);
+  __ load_heap_oop_rv(method_temp, Address(method_temp, NONZERO(java_lang_invoke_LambdaForm::vmentry_offset_in_bytes())));
   __ verify_oop(method_temp);
-  __ load_heap_oop(method_temp, Address(method_temp, NONZERO(java_lang_invoke_MemberName::method_offset_in_bytes())), temp2);
+  __ load_heap_oop_rv(method_temp, Address(method_temp, NONZERO(java_lang_invoke_MemberName::method_offset_in_bytes())));
   __ verify_oop(method_temp);
-  __ access_load_at(T_ADDRESS, IN_HEAP, method_temp, Address(method_temp, NONZERO(java_lang_invoke_ResolvedMethodName::vmtarget_offset_in_bytes())), noreg, noreg);
-
+ // __ access_load_at(T_ADDRESS, IN_HEAP, method_temp, Address(method_temp, NONZERO(java_lang_invoke_ResolvedMethodName::vmtarget_offset_in_bytes())), noreg, noreg);
+  __ ld(method_temp, Address(method_temp, NONZERO(java_lang_invoke_MemberName::vmtarget_offset_in_bytes())));
   if (VerifyMethodHandles && !for_compiler_entry) {
     // make sure recv is already on stack
     __ ld(temp2, Address(method_temp, Method::const_offset()));
@@ -153,7 +153,8 @@ void MethodHandles::jump_to_lambda_form(MacroAssembler* _masm,
                         sizeof(u2), /*is_signed*/ false);
     Label L;
     __ ld(t0, __ argument_address(temp2, -1));
-    __ oop_equal(recv, t0, L);
+    //__ oop_equal(recv, t0, L);
+    __ beq(recv, t0, L);
     __ ld(x10, __ argument_address(temp2, -1));
     __ ebreak();
     __ BIND(L);
@@ -309,7 +310,7 @@ void MethodHandles::generate_method_handle_dispatch(MacroAssembler* _masm,
       if (VerifyMethodHandles && iid != vmIntrinsics::_linkToInterface) {
         Label L_ok;
         Register temp2_defc = temp2;
-        __ load_heap_oop(temp2_defc, member_clazz, temp3);
+        __ load_heap_oop_rv(temp2_defc, member_clazz);
         load_klass_from_Class(_masm, temp2_defc);
         __ verify_klass_ptr(temp2_defc);
         __ check_klass_subtype(temp1_recv_klass, temp2_defc, temp3, L_ok);
@@ -336,16 +337,18 @@ void MethodHandles::generate_method_handle_dispatch(MacroAssembler* _masm,
       if (VerifyMethodHandles) {
         verify_ref_kind(_masm, JVM_REF_invokeSpecial, member_reg, temp3);
       }
-      __ load_heap_oop(xmethod, member_vmtarget);
-      __ access_load_at(T_ADDRESS, IN_HEAP, xmethod, vmtarget_method, noreg, noreg);
+      //__ load_heap_oop(xmethod, member_vmtarget);
+      //__ access_load_at(T_ADDRESS, IN_HEAP, xmethod, vmtarget_method, noreg, noreg);
+      __ ld(xmethod, member_vmtarget);
       break;
 
     case vmIntrinsics::_linkToStatic:
       if (VerifyMethodHandles) {
         verify_ref_kind(_masm, JVM_REF_invokeStatic, member_reg, temp3);
       }
-      __ load_heap_oop(xmethod, member_vmtarget);
-      __ access_load_at(T_ADDRESS, IN_HEAP, xmethod, vmtarget_method, noreg, noreg);
+      //__ load_heap_oop(xmethod, member_vmtarget);
+      //__ access_load_at(T_ADDRESS, IN_HEAP, xmethod, vmtarget_method, noreg, noreg);
+      __ ld(xmethod, member_vmtarget);
       break;
 
     case vmIntrinsics::_linkToVirtual:
@@ -359,7 +362,8 @@ void MethodHandles::generate_method_handle_dispatch(MacroAssembler* _masm,
 
       // pick out the vtable index from the MemberName, and then we can discard it:
       Register temp2_index = temp2;
-      __ access_load_at(T_ADDRESS, IN_HEAP, temp2_index, member_vmindex, noreg, noreg);
+      //__ access_load_at(T_ADDRESS, IN_HEAP, temp2_index, member_vmindex, noreg, noreg);
+      __ ld(xmethod, member_vmtarget);
 
       if (VerifyMethodHandles) {
         Label L_index_ok;
@@ -385,12 +389,12 @@ void MethodHandles::generate_method_handle_dispatch(MacroAssembler* _masm,
       }
 
       Register temp3_intf = temp3;
-      __ load_heap_oop(temp3_intf, member_clazz);
+      __ load_heap_oop_rv(temp3_intf, member_clazz);
       load_klass_from_Class(_masm, temp3_intf);
       __ verify_klass_ptr(temp3_intf);
 
       Register rindex = xmethod;
-      __ access_load_at(T_ADDRESS, IN_HEAP, rindex, member_vmindex, noreg, noreg);
+       __ ld(rindex, member_vmindex);
       if (VerifyMethodHandles) {
         Label L;
         __ bgez(rindex, L);

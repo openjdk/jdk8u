@@ -176,6 +176,100 @@ class StubGenerator: public StubCodeGenerator {
     retaddr_off        =   1,
   };
 
+    void  gen_write_ref_array_pre_barrier(Register addr, Register count, bool dest_uninitialized) {
+    BarrierSet* bs = Universe::heap()->barrier_set();
+    switch (bs->kind()) {
+    case BarrierSet::G1SATBCT:
+    case BarrierSet::G1SATBCTLogging:
+      // With G1, don't generate the call if we statically know that the target in uninitialized
+      if (!dest_uninitialized) {
+        __ push_call_clobbered_registers();
+        if (count == c_rarg0) {
+          if (addr == c_rarg1) {
+            // exactly backwards!!
+            __ mv(t0, c_rarg0);
+            __ mv(c_rarg0, c_rarg1);
+            __ mv(c_rarg1, t0);
+          } else {
+            __ mv(c_rarg1, count);
+            __ mv(c_rarg0, addr);
+          }
+        } else {
+          __ mv(c_rarg0, addr);
+          __ mv(c_rarg1, count);
+        }
+        __ call_VM_leaf(CAST_FROM_FN_PTR(address, BarrierSet::static_write_ref_array_pre), 2);
+        __ pop_call_clobbered_registers();
+        break;
+      case BarrierSet::CardTableModRef:
+      case BarrierSet::CardTableExtension:
+      case BarrierSet::ModRef:
+        break;
+      default:
+        ShouldNotReachHere();
+
+      }
+    }
+  }
+void gen_write_ref_array_post_barrier(Register start, Register end, Register scratch) {
+    assert_different_registers(start, end, scratch);
+    Label L_done;
+
+    // "end" is inclusive end pointer == start  (count - 1) * array_element_size
+    // If count == 0, "end" is less than "start" and we need to skip card marking.
+    // bne(end, start);
+    //__ (__ LO, L_done);
+    __ bltu(end, start, L_done);
+
+    BarrierSet* bs = Universe::heap()->barrier_set();
+    switch (bs->kind()) {
+      case BarrierSet::G1SATBCT:
+      case BarrierSet::G1SATBCTLogging:
+
+        {
+          __ push_call_clobbered_registers();
+          // must compute element count unless barrier set interface is changed (other platforms supply count)
+          assert_different_registers(start, end, scratch);
+          __ lea(scratch, Address(end, BytesPerHeapOop));
+          __ sub(scratch, scratch, start);               // subtract start to get #bytes
+          __ srli(scratch, scratch, LogBytesPerHeapOop);  // convert to element count
+          __ mv(c_rarg0, start);
+          __ mv(c_rarg1, scratch);
+          __ call_VM_leaf(CAST_FROM_FN_PTR(address, BarrierSet::static_write_ref_array_post), 2);
+          __ pop_call_clobbered_registers();
+        }
+        break;
+      case BarrierSet::CardTableModRef:
+      case BarrierSet::CardTableExtension:
+        {
+          CardTableModRefBS* ct = (CardTableModRefBS*)bs;
+          assert(sizeof(*ct->byte_map_base) == sizeof(jbyte), "adjust this code");
+
+          Label L_loop;
+
+           __ srli(start, start, CardTableModRefBS::card_shift);
+           __ srli(end, end, CardTableModRefBS::card_shift);
+           __ sub(end, end, start); // number of bytes to copy
+
+          const Register count = end; // 'end' register contains bytes count now
+          __ load_byte_map_base(scratch);
+          __ add(start, start, scratch);
+          if (UseConcMarkSweepGC) {
+            __ membar(__ StoreStore);
+          }
+          __ BIND(L_loop);
+          __ sb(zr, Address(start, count));
+          __ addi(count, count, -1);//replace subs
+          __ bge(count, 0, L_loop);
+        }
+        break;
+      default:
+        ShouldNotReachHere();
+
+    }
+    __ bind(L_done);
+  }
+
   address generate_call_stub(address& return_address) {
     assert((int)frame::entry_frame_after_call_words == -(int)sp_after_call_off + 1 &&
            (int)frame::entry_frame_call_wrapper_offset == (int)call_wrapper_off,
@@ -993,12 +1087,13 @@ class StubGenerator: public StubCodeGenerator {
       decorators |= ARRAYCOPY_ALIGNED;
     }
 
-    BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
-    bs->arraycopy_prologue(_masm, decorators, is_oop, s, d, count, saved_reg);
+    //BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
+    //bs->arraycopy_prologue(_masm, decorators, is_oop, s, d, count, saved_reg);
 
     if (is_oop) {
       // save regs before copy_memory
       __ push_reg(RegSet::of(d, count), sp);
+      gen_write_ref_array_pre_barrier(d, count, dest_uninitialized);
     }
     copy_memory(aligned, s, d, count, t0, size);
 
@@ -1009,8 +1104,16 @@ class StubGenerator: public StubCodeGenerator {
       }
     }
 
-    bs->arraycopy_epilogue(_masm, decorators, is_oop, d, count, t0, RegSet());
-
+   // bs->arraycopy_epilogue(_masm, decorators, is_oop, d, count, t0, RegSet());
+       if (is_oop) {
+       __ pop_reg(RegSet::of(d, count), sp);
+      if (VerifyOops)
+        verify_oop_array(size, d, count, x28);
+      __ sub(count, count, 1); // make an inclusive end pointer
+      __ lea(count, Address(d, count, Address::lsl(exact_log2(size))));
+      gen_write_ref_array_post_barrier(d, count, t1);
+    }
+ 
     __ leave();
     __ mv(x10, zr); // return 0
     __ ret();
@@ -1060,12 +1163,16 @@ class StubGenerator: public StubCodeGenerator {
       decorators |= ARRAYCOPY_ALIGNED;
     }
 
-    BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
-    bs->arraycopy_prologue(_masm, decorators, is_oop, s, d, count, saved_regs);
+   // BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
+   // bs->arraycopy_prologue(_masm, decorators, is_oop, s, d, count, saved_regs);
 
-    if (is_oop) {
-      // save regs before copy_memory
-      __ push_reg(RegSet::of(d, count), sp);
+       if (is_oop) {
+       __ pop_reg(RegSet::of(d, count), sp);
+      if (VerifyOops)
+        verify_oop_array(size, d, count, x28);
+      __ sub(count, count, 1); // make an inclusive end pointer
+      __ lea(count, Address(d, count, Address::lsl(exact_log2(size))));
+      gen_write_ref_array_post_barrier(d, count, t1);
     }
 
     copy_memory(aligned, s, d, count, t0, -size);
@@ -1075,7 +1182,7 @@ class StubGenerator: public StubCodeGenerator {
         verify_oop_array(size, d, count, t2);
       }
     }
-    bs->arraycopy_epilogue(_masm, decorators, is_oop, d, count, t0, RegSet());
+    //bs->arraycopy_epilogue(_masm, decorators, is_oop, d, count, t0, RegSet());
     __ leave();
     __ mv(x10, zr); // return 0
     __ ret();
@@ -1402,8 +1509,9 @@ class StubGenerator: public StubCodeGenerator {
       decorators |= IS_DEST_UNINITIALIZED;
     }
 
-    BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
-    bs->arraycopy_prologue(_masm, decorators, is_oop, from, to, count, wb_pre_saved_regs);
+   // BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
+    //bs->arraycopy_prologue(_masm, decorators, is_oop, from, to, count, wb_pre_saved_regs);
+    gen_write_ref_array_pre_barrier(to, count, dest_uninitialized);
 
     // save the original count
     __ mv(count_save, count);
@@ -1424,14 +1532,14 @@ class StubGenerator: public StubCodeGenerator {
     __ align(OptoLoopAlignment);
 
     __ BIND(L_store_element);
-    __ store_heap_oop(Address(to, 0), copied_oop, noreg, noreg, AS_RAW);  // store the oop
+    __ store_heap_oop_rv(__ post(to, UseCompressedOops ? 4 : 8), copied_oop); // store the oop  // store the oop
     __ add(to, to, UseCompressedOops ? 4 : 8);
     __ sub(count, count, 1);
     __ beqz(count, L_do_card_marks);
 
     // ======== loop entry is here ========
     __ BIND(L_load_element);
-    __ load_heap_oop(copied_oop, Address(from, 0), noreg, noreg, AS_RAW); // load the oop
+    __ load_heap_oop_rv(copied_oop, __ post(from, UseCompressedOops ? 4 : 8));  // load the oop
     __ add(from, from, UseCompressedOops ? 4 : 8);
     __ beqz(copied_oop, L_store_element);
 
@@ -1449,8 +1557,9 @@ class StubGenerator: public StubCodeGenerator {
     __ beqz(count, L_done_pop);
 
     __ BIND(L_do_card_marks);
-    bs->arraycopy_epilogue(_masm, decorators, is_oop, start_to, count_save, t0, wb_post_saved_regs);
-
+   // bs->arraycopy_epilogue(_masm, decorators, is_oop, start_to, count_save, t0, wb_post_saved_regs);
+    __ add(to, to, -heapOopSize);         // make an inclusive end pointer
+    gen_write_ref_array_post_barrier(start_to, to, t0);
     __ bind(L_done_pop);
     __ pop_reg(RegSet::of(x7, x9, x18, x19), sp);
     inc_counter_np(SharedRuntime::_checkcast_array_copy_ctr);

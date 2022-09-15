@@ -954,9 +954,20 @@ address InterpreterGenerator::generate_Reference_get_entry(void) {
 
   // Load the value of the referent field.
   const Address field_address(local_0, referent_offset);
-  BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
-  bs->load_at(_masm, IN_HEAP | ON_WEAK_OOP_REF, T_OBJECT, local_0, field_address, /*tmp1*/ t1, /*tmp2*/ t0);
+  //BarrierSetAssembler *bs = BarrierSetRv::barrier_set()->barrier_set_assembler();
+ // bs->load_at(_masm, IN_HEAP | ON_WEAK_OOP_REF, T_OBJECT, local_0, field_address, /*tmp1*/ t1, /*tmp2*/ t0);
+  __ load_heap_oop_rv(local_0, field_address);
 
+    // Generate the G1 pre-barrier code to log the value of
+    // the referent field in an SATB buffer.
+  __ enter(); // g1_write may call runtime
+  __ g1_write_barrier_pre(noreg /* obj */,
+                            local_0 /* pre_val */,
+                            xthread /* thread */,
+                            t1 /* tmp */,
+                            true /* tosca_live */,
+                            true /* expand_call */);
+    __ leave();
   // areturn
   __ andi(sp, x9, -16);  // done with stack
   __ ret();

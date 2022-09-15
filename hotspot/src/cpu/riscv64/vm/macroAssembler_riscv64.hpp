@@ -219,6 +219,8 @@ class MacroAssembler: public Assembler {
   // Used for storing NULL. All other oop constants should be
   // stored using routines that take a jobject.
   void store_heap_oop_null(Address dst);
+  void incr_allocated_bytes(Register var_size_in_bytes, int con_size_in_bytes,
+                           Register t1 = noreg);
 
   // This dummy is to prevent a call to store_heap_oop from
   // converting a zero (linke NULL) into a Register by giving

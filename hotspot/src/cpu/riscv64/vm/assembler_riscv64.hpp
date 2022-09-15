@@ -145,6 +145,8 @@ const FloatRegister g_FPArgReg[Argument::n_float_register_parameters_c] = {
 };
 
 #define assert_cond(ARG1) vmassert(ARG1, #ARG1)
+
+
 class PrePost {
   int _offset;
   Register _r;
@@ -430,6 +432,21 @@ public:
 
   void emit(unsigned insn) {
     emit_int32((jint)insn);
+  }
+
+    Address adjust(Register base, int offset, bool preIncrement) {
+    if (preIncrement)
+      return Address(Pre(base, offset));
+    else
+      return Address(Post(base, offset));
+  }
+
+  Address pre(Register base, int offset) {
+    return adjust(base, offset, true);
+  }
+ 
+  Address post (Register base, int offset) {
+    return adjust(base, offset, false);
   }
 
   void halt() {
