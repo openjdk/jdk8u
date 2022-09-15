@@ -674,7 +674,7 @@ frame::frame(void* ptr_sp, void* ptr_fp, void* pc) {
   init((intptr_t*)ptr_sp, (intptr_t*)ptr_fp, (address)pc);
 }
 
-//void frame::pd_ps() {}
+void pd_ps(frame f) {}
 #endif
 
 void JavaFrameAnchor::make_walkable(JavaThread* thread) {

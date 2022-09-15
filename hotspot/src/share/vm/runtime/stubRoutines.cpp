@@ -112,6 +112,13 @@ address StubRoutines::_checkcast_arraycopy               = NULL;
 address StubRoutines::_checkcast_arraycopy_uninit        = NULL;
 address StubRoutines::_unsafe_arraycopy                  = NULL;
 address StubRoutines::_generic_arraycopy                 = NULL;
+address StubRoutines::_dexp = NULL;
+address StubRoutines::_dlog = NULL;
+address StubRoutines::_dlog10 = NULL;
+address StubRoutines::_dpow = NULL;
+address StubRoutines::_dsin = NULL;
+address StubRoutines::_dcos = NULL;
+address StubRoutines::_dtan = NULL;
 
 
 address StubRoutines::_jbyte_fill;
