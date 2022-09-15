@@ -55,7 +55,7 @@ void MethodHandles::load_klass_from_Class(MacroAssembler* _masm, Register klass_
 
 #ifdef ASSERT
 static int check_nonzero(const char* xname, int x) {
-  assert(x != 0, "%s should be nonzero", xname);
+  assert(x != 0, err_msg("%s should be nonzero", xname));
   return x;
 }
 #define NONZERO(x) check_nonzero(#x, x)
@@ -68,7 +68,7 @@ void MethodHandles::verify_klass(MacroAssembler* _masm,
                                  Register obj, SystemDictionary::WKID klass_id,
                                  const char* error_message) {
   assert_cond(_masm != NULL);
-  InstanceKlass** klass_addr = SystemDictionary::well_known_klass_addr(klass_id);
+  Klass** klass_addr = SystemDictionary::well_known_klass_addr(klass_id);
   Klass* klass = SystemDictionary::well_known_klass(klass_id);
   Register temp = t1;
   Register temp2 = t0; // used by MacroAssembler::cmpptr

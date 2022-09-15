@@ -316,7 +316,7 @@
 #define NOT_SHARK(code) code
 #endif
 
-#if defined(IA32) || defined(AMD64)
+#if defined(IA32) || defined(AMD64) 
 #define X86
 #define X86_ONLY(code) code
 #define NOT_X86(code)

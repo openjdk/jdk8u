@@ -145,13 +145,13 @@ void CompiledStaticCall::set_stub_to_clean(static_stub_Relocation* static_stub) 
 
 void CompiledStaticCall::verify() {
   // Verify call.
-  _call->verify();
+  NativeCall::verify();
   if (os::is_MP()) {
-    _call->verify_alignment();
+    verify_alignment();
   }
 
   // Verify stub.
-  address stub = find_stub(false /* is_aot */);
+  address stub = find_stub();
   assert(stub != NULL, "no stub found for static call");
   // Creation also verifies the object.
   NativeMovConstReg* method_holder

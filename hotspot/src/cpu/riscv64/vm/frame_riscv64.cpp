@@ -378,7 +378,7 @@ frame frame::sender_for_entry_frame(RegisterMap* map) const {
 // Verifies the calculated original PC of a deoptimization PC for the
 // given unextended SP.
 #ifdef ASSERT
-void frame::verify_deopt_original_pc(nmethod* nm, intptr_t* unextended_sp) {
+void frame::verify_deopt_original_pc(nmethod* nm, intptr_t* unextended_sp, bool is_method_handle_return) {
   frame fr;
 
   // This is ugly but it's better than to change {get,set}_original_pc
@@ -388,8 +388,8 @@ void frame::verify_deopt_original_pc(nmethod* nm, intptr_t* unextended_sp) {
 
   assert_cond(nm != NULL);
   address original_pc = nm->get_original_pc(&fr);
-  assert(nm->insts_contains_inclusive(original_pc),
-         "original PC must be in the main code section of the the compiled method (or must be immediately following it)");
+  assert(nm->insts_contains(original_pc), "original PC must be in nmethod");
+  assert(nm->is_method_handle_return(original_pc) == is_method_handle_return, "must be");
 }
 #endif
 
@@ -638,11 +638,11 @@ void frame::describe_pd(FrameValues& values, int frame_no) {
     DESCRIBE_FP_OFFSET(interpreter_frame_sender_sp);
     DESCRIBE_FP_OFFSET(interpreter_frame_last_sp);
     DESCRIBE_FP_OFFSET(interpreter_frame_method);
-    DESCRIBE_FP_OFFSET(interpreter_frame_mdp);
+    DESCRIBE_FP_OFFSET(interpreter_frame_mdx);
     DESCRIBE_FP_OFFSET(interpreter_frame_mirror);
     DESCRIBE_FP_OFFSET(interpreter_frame_cache);
     DESCRIBE_FP_OFFSET(interpreter_frame_locals);
-    DESCRIBE_FP_OFFSET(interpreter_frame_bcp);
+    DESCRIBE_FP_OFFSET(interpreter_frame_bcx);
     DESCRIBE_FP_OFFSET(interpreter_frame_initial_sp);
   }
 }
@@ -674,7 +674,7 @@ frame::frame(void* ptr_sp, void* ptr_fp, void* pc) {
   init((intptr_t*)ptr_sp, (intptr_t*)ptr_fp, (address)pc);
 }
 
-void frame::pd_ps() {}
+//void frame::pd_ps() {}
 #endif
 
 void JavaFrameAnchor::make_walkable(JavaThread* thread) {
