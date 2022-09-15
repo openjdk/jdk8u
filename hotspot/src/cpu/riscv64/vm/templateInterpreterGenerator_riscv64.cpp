@@ -1953,7 +1953,7 @@ address TemplateInterpreterGenerator::generate_trace_code(TosState state) {
   __ push(state);
   __ push_reg(RegSet::range(x10, x17) + RegSet::range(x5, x7) + RegSet::range(x28, x31), sp);
   __ mv(c_rarg2, x10);  // Pass itos
-  __ call_VM(noreg, CAST_FROM_FN_PTR(address, InterpreterRuntime::trace_bytecode), c_rarg1, c_rarg2, c_rarg3);
+  __ call_VM(noreg, CAST_FROM_FN_PTR(address, SharedRuntime::trace_bytecode), c_rarg1, c_rarg2, c_rarg3);
   __ pop_reg(RegSet::range(x10, x17) + RegSet::range(x5, x7) + RegSet::range(x28, x31), sp);
   __ pop(state);
   __ pop_reg(lr);

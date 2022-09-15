@@ -207,7 +207,7 @@ static bool add_new_thread(struct ps_prochandle* ph, pthread_t pthread_id, lwpid
  * Not the most robust but good enough.
  */
 
-#if defined(amd64) || defined(x86_64)
+#if defined(amd64) || defined(x86_64) 
 #define TEXT_START_ADDR 0x400000
 #elif defined(i386)
 #define TEXT_START_ADDR 0x8048000
