@@ -1317,11 +1317,11 @@ class JavaThread: public Thread {
     { return (a <= stack_yellow_zone_base()) && (a >= stack_red_zone_base()); }
   bool in_stack_red_zone(address a)
     { return (a <= stack_red_zone_base()) && (a >= (address)((intptr_t)stack_base() - stack_size())); }
-  static size_t _stack_shadow_zone_size;
-  static size_t stack_shadow_zone_size() {
+  //static size_t _stack_shadow_zone_size;
+ /* static size_t stack_shadow_zone_size() {
     assert(_stack_shadow_zone_size > 0, "Don't call this before the field is initialized.");
     return _stack_shadow_zone_size;
-  }
+  }*/
   void enable_stack_reserved_zone();
   inline bool stack_reserved_zone_disabled();
   static size_t stack_reserved_zone_size() {

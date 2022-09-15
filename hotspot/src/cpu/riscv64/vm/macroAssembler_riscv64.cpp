@@ -1675,7 +1675,7 @@ void MacroAssembler::bang_stack_size(Register size, Register tmp) {
   // was post-decremented.)  Skip this address by starting at i=1, and
   // touch a few more pages below.  N.B.  It is important to touch all
   // the way down to and including i=StackShadowPages.
-  for (int i = 0; i < (int)(JavaThread::stack_shadow_zone_size() / os::vm_page_size()) - 1; i++) {
+  for (int i = 0; i < StackShadowPages-1; i++) {
     // this could be any sized move but this is can be a debugging crumb
     // so the bigger the better.
     sub(tmp, tmp, os::vm_page_size());
@@ -2006,7 +2006,7 @@ void MacroAssembler::g1_write_barrier_pre(Register obj,
   // InterpreterMacroAssembler::call_VM_leaf_base that checks _last_sp.
 
 #ifdef _LP64
-  assert(thread == rthread, "must be");
+  assert(thread == xthread, "must be");
 #endif // _LP64
 
   Label done;
@@ -2028,9 +2028,9 @@ void MacroAssembler::g1_write_barrier_pre(Register obj,
      lwu(tmp, in_progress);
   } else {
     assert(in_bytes(PtrQueue::byte_width_of_active()) == 1, "Assumption");
-     lb(tmp, in_progress);
+     lbu(tmp, in_progress);
   }
-   bnez(tmp, done);
+   beqz(tmp, done);
 
   // Do we need to load the previous value?
   if (obj != noreg) {
@@ -2050,8 +2050,8 @@ void MacroAssembler::g1_write_barrier_pre(Register obj,
 
    sub(tmp, tmp, wordSize);              // tmp := tmp - wordSize
    sd(tmp, index);                      // *index_adr := tmp
-   ld(x11, buffer);
-   add(tmp, tmp, x11);             // tmp := tmp + *buffer_adr
+   ld(t0, buffer);
+   add(tmp, tmp, t0);             // tmp := tmp + *buffer_adr
 
   // Record the previous value
    sd(pre_val, Address(tmp, 0));
@@ -2092,7 +2092,7 @@ void MacroAssembler::g1_write_barrier_post(Register store_addr,
                                            Register tmp,
                                            Register tmp2) {
 #ifdef _LP64
-  assert(thread == rthread, "must be");
+  assert(thread == xthread, "must be");
 #endif // _LP64
   assert_different_registers(store_addr, new_val, thread, tmp, tmp2,
                              x11);
@@ -2133,8 +2133,8 @@ void MacroAssembler::g1_write_barrier_post(Register store_addr,
    load_byte_map_base(tmp2);
    add(card_addr, card_addr, tmp2);
    lb(tmp2, Address(card_addr));
-   addi(zr, zr, (int)G1SATBCardTableModRefBS::g1_young_card_val());
-   beq(tmp2, zr, done);
+   mv(t0, (int)G1SATBCardTableModRefBS::g1_young_card_val());
+   beq(tmp2, t0, done);
    //jr(Assembler::EQ, done);
 
   assert((int)CardTableModRefBS::dirty_card_val() == 0, "must be 0");
@@ -2142,21 +2142,22 @@ void MacroAssembler::g1_write_barrier_post(Register store_addr,
    //fence(MacroAssembler::MacroAssembler::StoreLoad);
    membar(Assembler::Assembler::StoreLoad);
 
-   lb(tmp2, Address(card_addr));
-   bnez(tmp2, done);
+   lbu(tmp2, Address(card_addr));
+   beqz(tmp2, done);
 
   // storing a region crossing, non-NULL oop, card is clean.
   // dirty card and log.
 
    sb(zr, Address(card_addr));
 
-   ld(x11, queue_index);
-   beqz(x11, runtime);
-   sub(x11, x11, wordSize);
-   sd(x11, queue_index);
+   ld(t0, queue_index);
+   beqz(t0, runtime);
+   sub(t0, t0, wordSize);
+   sd(t0, queue_index);
 
    ld(tmp2, buffer);
-   sd(card_addr, Address(tmp2, x11));
+   add(t0, tmp2, t0);
+   sd(card_addr, Address(tmp2, 0));
    j(done);
 
    bind(runtime);
@@ -2310,7 +2311,7 @@ void MacroAssembler::membar(uint32_t order_constraint) {
   address prev = pc() - NativeMembar::instruction_size;
   address last = code()->last_insn();
 
-  if (last != NULL && nativeInstruction_at(last)->is_membar() && prev == last) {
+  if (last != NULL  && prev == last && nativeInstruction_at(last)->is_membar()) {
     NativeMembar *bar = NativeMembar_at(prev);
     // We are merging two memory barrier instructions.  On RISCV we
     // can do this simply by ORing them together.

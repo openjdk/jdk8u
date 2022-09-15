@@ -1431,7 +1431,7 @@ nmethod* SharedRuntime::generate_native_wrapper(MacroAssembler* masm,
 
   // Generate stack overflow check
   if (UseStackBanging) {
-    __ bang_stack_with_offset(JavaThread::stack_shadow_zone_size());
+    __ bang_stack_with_offset(StackShadowPages*os::vm_page_size());
   } else {
     Unimplemented();
   }

@@ -152,7 +152,7 @@ static void do_oop_store_rv(MacroAssembler* _masm,
                          Register val,
                          BarrierSet::Name barrier,
                          bool precise) {
-  assert(val == noreg || val == r0, "parameter is just for looks");
+  assert(val == noreg || val == x10, "parameter is just for looks");
   switch (barrier) {
 #if INCLUDE_ALL_GCS
     case BarrierSet::G1SATBCT:

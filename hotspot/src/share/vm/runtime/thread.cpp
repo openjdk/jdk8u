@@ -2482,7 +2482,7 @@ void JavaThread::java_resume() {
 
 size_t JavaThread::_stack_reserved_zone_size = 0;
 size_t JavaThread::_stack_yellow_zone_size = 0;
-size_t JavaThread::_stack_shadow_zone_size = 0;
+//size_t JavaThread::_stack_shadow_zone_size = 0;
 void JavaThread::create_stack_guard_pages() {
   if (!os::uses_stack_guard_pages() ||
       _stack_guard_state != stack_guard_unused ||
