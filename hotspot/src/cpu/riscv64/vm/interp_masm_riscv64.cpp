@@ -280,12 +280,13 @@ void InterpreterMacroAssembler::load_resolved_reference_at_index(
   // load pointer for resolved_references[] objArray
   ld(result, Address(result, ConstantPool::cache_offset_in_bytes()));
   ld(result, Address(result, ConstantPool::resolved_references_offset_in_bytes()));
-  resolve_oop_handle(result, tmp);
+  //resolve_oop_handle(result, tmp);
   // Add in the index
   addi(index, index, arrayOopDesc::base_offset_in_bytes(T_OBJECT) >> LogBytesPerHeapOop);
   slli(index, index, LogBytesPerHeapOop);
   add(result, result, index);
-  load_heap_oop(result, Address(result, 0));
+ // load_heap_oop(result, Address(result, 0));
+ load_heap_oop_rv(result, Address(result, arrayOopDesc::base_offset_in_bytes(T_OBJECT)));
 }
 
 void InterpreterMacroAssembler::load_resolved_klass_at_offset(
