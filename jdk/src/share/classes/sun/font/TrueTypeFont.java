@@ -180,10 +180,10 @@ public class TrueTypeFont extends FileFont {
      */
     private String[] familyNames;
     private String[] fullNames;
-    
+
     private String[] localeFamilyNames;
     private String[] localeFullNames;
-    
+
     /*
      * Used on Windows to validate the font selected by GDI for (sub-pixel
      * antialiased) rendering. For 'standalone' fonts it's equal to the font
@@ -582,7 +582,7 @@ public class TrueTypeFont extends FileFont {
                 /**
                  * font name:
                  * no,  find all font names.
-                 * yes, only find the right one. 
+                 * yes, only find the right one.
                  */
                 if (loadTTC) {
                     long currPos = disposerRecord.channel.position();
@@ -637,14 +637,14 @@ public class TrueTypeFont extends FileFont {
         setCJKSupport(os2_Table);
         supportsEncoding(null);
     }
-    
+
     private void initOneFont4TTC(int fIndex, boolean allFlag) throws FontFormatException {
         ByteBuffer buffer = readBlock(TTCHEADERSIZE+4*fIndex, 4);
         int headerOffset = buffer.getInt();
         fontDataSize = Math.max(0, fileSize - headerOffset);
         initOneFont(fIndex, headerOffset, buffer, allFlag);
     }
-    
+
     private void initOneFont(int fIndex, int headerOffset, ByteBuffer buffer, boolean allFlag) throws FontFormatException {
         if (familyNames == null) {
             familyNames       = new String[directoryCount];
