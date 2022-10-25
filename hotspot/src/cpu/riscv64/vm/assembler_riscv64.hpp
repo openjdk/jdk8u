@@ -247,12 +247,12 @@ class Address {
       _rspec(rspec),
       _target(target)  { }
   Address(Register r, Register r1, extend ext = lsl())
-    : _mode(base_plus_offset_reg), _base(r), _index(r1),
+    : _mode(base_plus_offset), _base(r), _index(r1),
     _ext(ext), _offset(0), _target(0) { }
   Address(Pre p)
-    : _mode(pre), _base(p.reg()), _offset(p.offset()) { }
+    : _mode(base_plus_offset), _base(p.reg()), _offset(p.offset()) { }
   Address(Post p)
-    : _mode(post), _base(p.reg()), _offset(p.offset()), _target(0) { }
+    : _mode(base_plus_offset), _base(p.reg()), _offset(p.offset()), _target(0) { }
   Address(address target, relocInfo::relocType rtype = relocInfo::external_word_type);
 
   const Register base() const {
