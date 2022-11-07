@@ -2546,6 +2546,8 @@ void TemplateTable::resolve_cache_and_index(int byte_no,
   __ call_VM(noreg, entry, temp);*/
 
   // Update registers with resolved info
+  __ mv(temp, (int) code);
+  __ call_VM(noreg, entry, temp);
   __ get_cache_and_index_at_bcp(Rcache, index, 1, index_size);
   // n.b. unlike x86 Rcache is now rcpool plus the indexed offset
   // so all clients ofthis method must be modified accordingly
