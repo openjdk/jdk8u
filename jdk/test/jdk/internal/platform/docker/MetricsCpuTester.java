@@ -24,6 +24,7 @@
 import java.util.Arrays;
 import java.util.stream.IntStream;
 import java.util.stream.Stream;
+
 import jdk.internal.platform.Metrics;
 
 public class MetricsCpuTester {
@@ -95,10 +96,13 @@ public class MetricsCpuTester {
                     + Arrays.toString(ipCpuSet) + ", got : " + Arrays.toString(cpuSets));
         }
 
-        if (!Arrays.equals(ipCpuSet, effectiveCpus)) {
-            throw new RuntimeException("Effective Cpusets not equal, expected : "
-                    + Arrays.toString(ipCpuSet) + ", got : "
-                    + Arrays.toString(effectiveCpus));
+        // Check to see if this metric is supported on this platform
+        if (effectiveCpus != null) {
+            if (!Arrays.equals(ipCpuSet, effectiveCpus)) {
+                throw new RuntimeException("Effective Cpusets not equal, expected : "
+                        + Arrays.toString(ipCpuSet) + ", got : "
+                        + Arrays.toString(effectiveCpus));
+            }
         }
         System.out.println("TEST PASSED!!!");
     }
@@ -127,16 +131,24 @@ public class MetricsCpuTester {
                     + Arrays.toString(cpuSets));
         }
 
-        if (!Arrays.equals(ipCpuSet, effectiveMems)) {
-            throw new RuntimeException("Effective mem nodes not equal, expected : "
-                    + Arrays.toString(ipCpuSet) + ", got : "
-                    + Arrays.toString(effectiveMems));
+        // Check to see if this metric is supported on this platform
+        if (effectiveMems != null) {
+            if (!Arrays.equals(ipCpuSet, effectiveMems)) {
+                throw new RuntimeException("Effective mem nodes not equal, expected : "
+                        + Arrays.toString(ipCpuSet) + ", got : "
+                        + Arrays.toString(effectiveMems));
+            }
         }
         System.out.println("TEST PASSED!!!");
     }
 
     private static void testCpuShares(long shares) {
         Metrics metrics = Metrics.systemMetrics();
+        if ("cgroupv2".equals(metrics.getProvider()) && shares < 1024) {
+            // Adjust input shares for < 1024 cpu shares as the
+            // impl. rounds up to the next multiple of 1024
+            shares = 1024;
+        }
         long newShares = metrics.getCpuShares();
         if (newShares != shares) {
             throw new RuntimeException("CPU shares not equal, expected : ["
