@@ -172,18 +172,6 @@ public class TrueTypeFont extends FileFont {
     private String localeFamilyName;
     private String localeFullName;
 
-    /**
-     * A font file:
-     * TTF: has a one font.
-     * TTC: has several fonts.
-     * Here store each font name.
-     */
-    private String[] familyNames;
-    private String[] fullNames;
-
-    private String[] localeFamilyNames;
-    private String[] localeFullNames;
-
     /*
      * Used on Windows to validate the font selected by GDI for (sub-pixel
      * antialiased) rendering. For 'standalone' fonts it's equal to the font
@@ -193,19 +181,11 @@ public class TrueTypeFont extends FileFont {
      */
     int fontDataSize;
 
-    public TrueTypeFont(String platname)
-        throws FontFormatException {
-        this(platname, null,        0,      true,           true, null,     true);
-    }
-
-    public TrueTypeFont(String platname, Object nativeNames, String fontName,
-                 boolean javaRasterizer) throws FontFormatException {
-        this(platname, nativeNames, 0,      javaRasterizer, true,  fontName, true);
-    }
     public TrueTypeFont(String platname, Object nativeNames, int fIndex,
                  boolean javaRasterizer)
-        throws FontFormatException {
-        this(platname, nativeNames, fIndex, javaRasterizer, true,  null,     false);
+        throws FontFormatException
+    {
+        this(platname, nativeNames, fIndex, javaRasterizer, true);
     }
 
     /**
@@ -220,18 +200,12 @@ public class TrueTypeFont extends FileFont {
     public TrueTypeFont(String platname, Object nativeNames, int fIndex,
                  boolean javaRasterizer, boolean useFilePool)
         throws FontFormatException {
-        this(platname, nativeNames, fIndex, javaRasterizer, useFilePool, null, false);
-    }
-
-    private TrueTypeFont(String platname, Object nativeNames, int fIndex,
-                 boolean javaRasterizer, boolean useFilePool, String fontName, boolean loadTTC)
-        throws FontFormatException {
         super(platname, nativeNames);
         useJavaRasterizer = javaRasterizer;
         fontRank = Font2D.TTF_RANK;
         try {
             verify(useFilePool);
-            init(fIndex, fontName, loadTTC);
+            init(fIndex);
             if (!useFilePool) {
                close();
             }
@@ -244,22 +218,6 @@ public class TrueTypeFont extends FileFont {
             }
         }
         Disposer.addObjectRecord(this, disposerRecord);
-    }
-
-    public String[] getFamilyNames() {
-       return familyNames;
-    }
-
-    public String[] getFullNames() {
-       return fullNames;
-    }
-
-    public String[] getLocalFamilyNames() {
-       return localeFamilyNames;
-    }
-
-    public String[] getLocalFullNames() {
-       return localeFullNames;
     }
 
     /* Enable natives just for fonts picked up from the platform that
@@ -565,7 +523,7 @@ public class TrueTypeFont extends FileFont {
     private static final int DIRECTORYHEADERSIZE = 12;
     private static final int DIRECTORYENTRYSIZE = 16;
 
-    protected void init(int fIndex, String fontName, boolean loadTTC) throws FontFormatException  {
+    protected void init(int fIndex) throws FontFormatException  {
         int headerOffset = 0;
         ByteBuffer buffer = readBlock(0, TTCHEADERSIZE);
         try {
@@ -578,43 +536,64 @@ public class TrueTypeFont extends FileFont {
                     throw new FontFormatException("Bad collection index");
                 }
                 fontIndex = fIndex;
-
-                /**
-                 * font name:
-                 * no,  find all font names.
-                 * yes, only find the right one.
-                 */
-                if (loadTTC) {
-                    long currPos = disposerRecord.channel.position();
-                    for (int i=0; i<directoryCount; i++) {
-                        initOneFont4TTC(i, false);
-                        disposerRecord.channel.position(currPos);
-
-                        //get right font index
-                        if (localeFullNames[i].equals(fontName)) {
-                            fontIndex = i;
-
-                            // clean font name
-                            localeFamilyName = null;
-                            localeFullName   = null;
-                            break;
-                        }
-                    }
-                }
-                initOneFont4TTC(fontIndex, true);
+                buffer = readBlock(TTCHEADERSIZE+4*fIndex, 4);
+                headerOffset = buffer.getInt();
+                fontDataSize = Math.max(0, fileSize - headerOffset);
                 break;
 
             case v1ttTag:
             case trueTag:
             case ottoTag:
                 fontDataSize = fileSize;
-                initOneFont(fontIndex, headerOffset, buffer, true);
                 break;
 
             default:
                 throw new FontFormatException("Unsupported sfnt " +
                                               getPublicFileName());
             }
+
+            /* Now have the offset of this TT font (possibly within a TTC)
+             * After the TT version/scaler type field, is the short
+             * representing the number of tables in the table directory.
+             * The table directory begins at 12 bytes after the header.
+             * Each table entry is 16 bytes long (4 32-bit ints)
+             */
+            buffer = readBlock(headerOffset+4, 2);
+            numTables = buffer.getShort();
+            directoryOffset = headerOffset+DIRECTORYHEADERSIZE;
+            ByteBuffer bbuffer = readBlock(directoryOffset,
+                                           numTables*DIRECTORYENTRYSIZE);
+            IntBuffer ibuffer = bbuffer.asIntBuffer();
+            DirectoryEntry table;
+            tableDirectory = new DirectoryEntry[numTables];
+            for (int i=0; i<numTables;i++) {
+                tableDirectory[i] = table = new DirectoryEntry();
+                table.tag   =  ibuffer.get();
+                /* checksum */ ibuffer.get();
+                table.offset = ibuffer.get() & 0x7FFFFFFF;
+                table.length = ibuffer.get() & 0x7FFFFFFF;
+                if ((table.offset + table.length < table.length) ||
+                    (table.offset + table.length > fileSize))
+                {
+                    throw new FontFormatException("bad table, tag="+table.tag);
+                }
+            }
+
+            if (getDirectoryEntry(headTag) == null) {
+                throw new FontFormatException("missing head table");
+            }
+            if (getDirectoryEntry(maxpTag) == null) {
+                throw new FontFormatException("missing maxp table");
+            }
+            if (getDirectoryEntry(hmtxTag) != null
+                    && getDirectoryEntry(hheaTag) == null) {
+                throw new FontFormatException("missing hhea table");
+            }
+            ByteBuffer maxpTable = getTableBuffer(maxpTag);
+            if (maxpTable.getChar(4) == 0) {
+                throw new FontFormatException("zero glyphs");
+            }
+            initNames();
         } catch (Exception e) {
             if (FontUtilities.isLogging()) {
                 FontUtilities.getLogger().severe(e.toString());
@@ -635,67 +614,6 @@ public class TrueTypeFont extends FileFont {
         ByteBuffer os2_Table = getTableBuffer(os_2Tag);
         setStyle(os2_Table);
         setCJKSupport(os2_Table);
-        supportsEncoding(null);
-    }
-
-    private void initOneFont4TTC(int fIndex, boolean allFlag) throws FontFormatException {
-        ByteBuffer buffer = readBlock(TTCHEADERSIZE+4*fIndex, 4);
-        int headerOffset = buffer.getInt();
-        fontDataSize = Math.max(0, fileSize - headerOffset);
-        initOneFont(fIndex, headerOffset, buffer, allFlag);
-    }
-
-    private void initOneFont(int fIndex, int headerOffset, ByteBuffer buffer, boolean allFlag) throws FontFormatException {
-        if (familyNames == null) {
-            familyNames       = new String[directoryCount];
-            fullNames         = new String[directoryCount];
-            localeFamilyNames = new String[directoryCount];
-            localeFullNames   = new String[directoryCount];
-        }
-
-        /* Now have the offset of this TT font (possibly within a TTC)
-         * After the TT version/scaler type field, is the short
-         * representing the number of tables in the table directory.
-         * The table directory begins at 12 bytes after the header.
-         * Each table entry is 16 bytes long (4 32-bit ints)
-         */
-        buffer = readBlock(headerOffset+4, 2);
-        numTables = buffer.getShort();
-        directoryOffset = headerOffset+DIRECTORYHEADERSIZE;
-        ByteBuffer bbuffer = readBlock(directoryOffset,
-                                       numTables*DIRECTORYENTRYSIZE);
-        IntBuffer ibuffer = bbuffer.asIntBuffer();
-        DirectoryEntry table;
-        tableDirectory = new DirectoryEntry[numTables];
-        for (int i=0; i<numTables;i++) {
-            tableDirectory[i] = table = new DirectoryEntry();
-            table.tag   =  ibuffer.get();
-            /* checksum */ ibuffer.get();
-            table.offset = ibuffer.get() & 0x7FFFFFFF;
-            table.length = ibuffer.get() & 0x7FFFFFFF;
-            if ((table.offset + table.length < table.length) ||
-                (table.offset + table.length > fileSize)) {
-                throw new FontFormatException("bad table, tag="+table.tag);
-            }
-        }
-
-        if (allFlag) {
-            if (getDirectoryEntry(headTag) == null) {
-                throw new FontFormatException("missing head table");
-            }
-            if (getDirectoryEntry(maxpTag) == null) {
-                throw new FontFormatException("missing maxp table");
-            }
-            if (getDirectoryEntry(hmtxTag) != null
-                    && getDirectoryEntry(hheaTag) == null) {
-                throw new FontFormatException("missing hhea table");
-            }
-            ByteBuffer maxpTable = getTableBuffer(maxpTag);
-            if (maxpTable.getChar(4) == 0) {
-                throw new FontFormatException("zero glyphs");
-            }
-        }
-        initNames(fIndex);
     }
 
     /* The array index corresponds to a bit offset in the TrueType
@@ -1265,7 +1183,7 @@ public class TrueTypeFont extends FileFont {
         }
     }
 
-    protected void initNames(int fIndex) {
+    protected void initNames() {
 
         byte[] name = new byte[256];
         ByteBuffer buffer = getTableBuffer(nameTag);
@@ -1308,12 +1226,10 @@ public class TrueTypeFont extends FileFont {
                         tmpName = makeString(name, nameLen, encodingID);
 
                         if (familyName == null || langID == ENGLISH_LOCALE_ID){
-                            familyName                = tmpName;
-                            familyNames[fIndex]       = tmpName;
+                            familyName = tmpName;
                         }
                         if (langID == nameLocaleID) {
-                            localeFamilyName          = tmpName;
-                            localeFamilyNames[fIndex] = tmpName;
+                            localeFamilyName = tmpName;
                         }
                     }
 /*
@@ -1340,24 +1256,20 @@ public class TrueTypeFont extends FileFont {
                         tmpName = makeString(name, nameLen, encodingID);
 
                         if (fullName == null || langID == ENGLISH_LOCALE_ID) {
-                            fullName                = tmpName;
-                            fullNames[fIndex]       = tmpName;
+                            fullName = tmpName;
                         }
                         if (langID == nameLocaleID) {
-                            localeFullName          = tmpName;
-                            localeFullNames[fIndex] = tmpName;
+                            localeFullName = tmpName;
                         }
                     }
                     break;
                 }
             }
             if (localeFamilyName == null) {
-                localeFamilyName  = familyName;
-                localeFamilyNames = familyNames;
+                localeFamilyName = familyName;
             }
             if (localeFullName == null) {
-                localeFullName    = fullName;
-                localeFullNames   = fullNames;
+                localeFullName = fullName;
             }
         }
     }

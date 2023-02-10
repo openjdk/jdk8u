@@ -83,12 +83,11 @@ public interface FontManager {
      * @param fontFormat the expected font format
      * @param isCopy {@code true} if the file is a copy and needs to be
      *        deleted, {@code false} otherwise
-     * @param fontName a font name(TTC font file has several fonts)
+     *
      * @return the created Font2D instance
      */
     public Font2D createFont2D(File fontFile, int fontFormat,
-                               boolean isCopy, CreatedFontTracker tracker,
-                               String fontName)
+                               boolean isCopy, CreatedFontTracker tracker)
         throws FontFormatException;
 
     /**

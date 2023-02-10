@@ -60,7 +60,6 @@ import sun.font.FontUtilities;
 import sun.font.GlyphLayout;
 import sun.font.FontLineMetrics;
 import sun.font.CoreMetrics;
-import sun.font.TrueTypeFont;
 
 import static sun.font.EAttribute.*;
 
@@ -606,8 +605,7 @@ public class Font implements java.io.Serializable
 
     /* used to implement Font.createFont */
     private Font(File fontFile, int fontFormat,
-                 boolean isCopy, CreatedFontTracker tracker,
-                 String fontName)
+                 boolean isCopy, CreatedFontTracker tracker)
         throws FontFormatException {
         this.createdFont = true;
         /* Font2D instances created by this method track their font file
@@ -615,10 +613,10 @@ public class Font implements java.io.Serializable
          */
         FontManager fm = FontManagerFactory.getInstance();
         this.font2DHandle = fm.createFont2D(fontFile, fontFormat, isCopy,
-                                            tracker, fontName).handle;
-        this.name      = this.font2DHandle.font2D.getFontName(Locale.getDefault());
-        this.style     = Font.PLAIN;
-        this.size      = 1;
+                                            tracker).handle;
+        this.name = this.font2DHandle.font2D.getFontName(Locale.getDefault());
+        this.style = Font.PLAIN;
+        this.size = 1;
         this.pointSize = 1f;
     }
 
@@ -968,7 +966,7 @@ public class Font implements java.io.Serializable
                  * without waiting for the results of that constructor.
                  */
                 copiedFontData = true;
-                Font font = new Font(tFile, fontFormat, true, tracker, null);
+                Font font = new Font(tFile, fontFormat, true, tracker);
                 return font;
             } finally {
                 if (tracker != null) {
@@ -1039,11 +1037,6 @@ public class Font implements java.io.Serializable
      */
     public static Font createFont(int fontFormat, File fontFile)
         throws java.awt.FontFormatException, java.io.IOException {
-        return createFont(fontFormat, fontFile, null);
-    }
-
-    public static Font createFont(int fontFormat, File fontFile, String fontName)
-        throws java.awt.FontFormatException, java.io.IOException {
 
         fontFile = new File(fontFile.getPath());
 
@@ -1060,29 +1053,7 @@ public class Font implements java.io.Serializable
         if (!fontFile.canRead()) {
             throw new IOException("Can't read " + fontFile);
         }
-        return new Font(fontFile, fontFormat, false, null, fontName);
-    }
-
-    public static String[] getAllFontNamesInFile(String fontFile) {
-        return getAllFontNamesInFile(fontFile, null);
-    }
-
-    public static String[] getAllFontNamesInFile(String fontFile, Locale l) {
-        try {
-            TrueTypeFont ttf = new TrueTypeFont(fontFile);
-            String[] src;
-            if (l != null && l.equals(Locale.ENGLISH)) {
-                src = ttf.getFullNames();
-            } else {
-                src = ttf.getLocalFullNames();
-            }
-            String[] dst = new String[src.length];
-            System.arraycopy(src, 0, dst, 0, src.length);
-            return dst;
-        } catch (Exception e) {
-            //
-        }
-        return null;
+        return new Font(fontFile, fontFormat, false, null);
     }
 
     /**

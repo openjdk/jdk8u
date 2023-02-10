@@ -2460,8 +2460,7 @@ public abstract class SunFontManager implements FontSupport, FontManagerForSGE {
     private int createdFontCount = 0;
 
     public Font2D createFont2D(File fontFile, int fontFormat,
-                               boolean isCopy, CreatedFontTracker tracker,
-                               String fontName)
+                               boolean isCopy, CreatedFontTracker tracker)
     throws FontFormatException {
 
         String fontFilePath = fontFile.getPath();
@@ -2482,11 +2481,7 @@ public abstract class SunFontManager implements FontSupport, FontManagerForSGE {
         try {
             switch (fontFormat) {
             case Font.TRUETYPE_FONT:
-                if (fontName != null && fontName.length() > 0) {
-                    font2D = new TrueTypeFont(fontFilePath, null, fontName, true);
-                } else {
-                    font2D = new TrueTypeFont(fontFilePath, null, 0,        true);
-                }
+                font2D = new TrueTypeFont(fontFilePath, null, 0, true);
                 font2D.setUseWeakRefs(weakRefs, maxStrikes);
                 break;
             case Font.TYPE1_FONT:
