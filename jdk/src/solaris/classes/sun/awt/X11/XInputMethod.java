@@ -203,8 +203,7 @@ public class XInputMethod extends X11InputMethod {
             Point p = client.getLocationOnScreen();
             x -= p.x;
             y -= p.y;
-        }
-		else {
+        } else {
             Dimension size = client.getSize();
             y += size.height;
         }
@@ -220,6 +219,5 @@ public class XInputMethod extends X11InputMethod {
     private native void setXICFocusNative(long window,
                                     boolean value, boolean active);
     private native void adjustStatusWindow(long window);
-
     private native void moveCandidateWindow(int x, int y);
 }
