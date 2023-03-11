@@ -50,6 +50,7 @@ sun.jvm.hotspot.debugger \
 sun.jvm.hotspot.debugger.amd64 \
 sun.jvm.hotspot.debugger.bsd \
 sun.jvm.hotspot.debugger.bsd.amd64 \
+sun.jvm.hotspot.debugger.bsd.aarch64 \
 sun.jvm.hotspot.debugger.bsd.x86 \
 sun.jvm.hotspot.debugger.cdbg \
 sun.jvm.hotspot.debugger.cdbg.basic \
@@ -93,6 +94,7 @@ sun.jvm.hotspot.runtime.amd64 \
 sun.jvm.hotspot.runtime.aarch64 \
 sun.jvm.hotspot.runtime.bsd \
 sun.jvm.hotspot.runtime.bsd_amd64 \
+sun.jvm.hotspot.runtime.bsd_aarch64 \
 sun.jvm.hotspot.runtime.bsd_x86 \
 sun.jvm.hotspot.runtime.linux \
 sun.jvm.hotspot.runtime.linux_amd64 \
@@ -139,6 +141,7 @@ sun/jvm/hotspot/debugger/*.java \
 sun/jvm/hotspot/debugger/amd64/*.java \
 sun/jvm/hotspot/debugger/bsd/*.java \
 sun/jvm/hotspot/debugger/bsd/amd64/*.java \
+sun/jvm/hotspot/debugger/bsd/aarch64/*.java \
 sun/jvm/hotspot/debugger/bsd/x86/*.java \
 sun/jvm/hotspot/debugger/cdbg/*.java \
 sun/jvm/hotspot/debugger/cdbg/basic/*.java \
@@ -179,6 +182,7 @@ sun/jvm/hotspot/runtime/aarch64/*.java \
 sun/jvm/hotspot/runtime/bsd/*.java \
 sun/jvm/hotspot/runtime/bsd_amd64/*.java \
 sun/jvm/hotspot/runtime/bsd_x86/*.java \
+sun/jvm/hotspot/runtime/bsd_aarch64/*.java \
 sun/jvm/hotspot/runtime/linux/*.java \
 sun/jvm/hotspot/runtime/linux_amd64/*.java \
 sun/jvm/hotspot/runtime/linux_aarch64/*.java \

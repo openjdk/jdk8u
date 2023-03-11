@@ -72,5 +72,8 @@
 #ifdef TARGET_OS_ARCH_bsd_zero
 # include "prefetch_bsd_zero.inline.hpp"
 #endif
+#ifdef TARGET_OS_ARCH_bsd_aarch64
+# include "prefetch_bsd_aarch64.inline.hpp"
+#endif
 
 #endif // SHARE_VM_RUNTIME_PREFETCH_INLINE_HPP
