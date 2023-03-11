@@ -105,7 +105,7 @@ class BsdCDebugger implements CDebugger {
        if (fp == null) return null;
        Address pc  = context.getRegisterAsAddress(AARCH64ThreadContext.PC);
        if (pc == null) return null;
-       return new BSDAARCH64CFrame(dbg, fp, pc);
+       return new BsdAARCH64CFrame(dbg, fp, pc);
     } else {
        throw new DebuggerException(cpu + " is not yet supported");
     }
