@@ -120,9 +120,9 @@ public class TestCharsetMapping {
     // EBCDIC encodings, which indicates the need of adding/
     // removing the shift bytes.
     private boolean shiftHackDBCS = false;
-    // 8u does not have JDK-8186803 so leHackIBM is true for
+    // 8u does not have JDK-8186803 so ebcdicLFHack is true for
     // IBM1140-1149 charsets that map U+000A to 0x25.
-    private boolean leHackIBM = false;
+    private boolean ebcdicLFHack = false;
 
     private TestCharsetMapping(CharsetInfo csinfo) throws Exception {
         this.csinfo = csinfo;
@@ -248,7 +248,7 @@ public class TestCharsetMapping {
                                 + printBytes(rbs));
                 }
                 if (!eq) {
-                    if (leHackIBM && cp == 0xA) {
+                    if (ebcdicLFHack && cp == 0xA) {
                         log.println(printCodePoint(cp) + " --> "
                                     + printBytes(obs) +
                                     " allowed for IBM0114x");
@@ -387,7 +387,7 @@ public class TestCharsetMapping {
     private boolean run() throws Exception {
         boolean rv = true;
         shiftHackDBCS = csinfo.type.equals("ebcdic");    // isStateful;
-        leHackIBM = csinfo.csName.startsWith("IBM0114"); // Maps LF to 0x25, JDK-8186803
+        ebcdicLFHack = csinfo.csName.startsWith("IBM0114"); // Maps LF to 0x25, JDK-8186803
 
         // (1) new String()/String.getBytes()
         rv &= testStringConv();
@@ -472,11 +472,6 @@ public class TestCharsetMapping {
         CharsetInfo(String csName, String clzName) {
             this.csName = csName;
             this.clzName = clzName;
-            if (csName.endsWith("_Solaris") ||
-                csName.endsWith("_MS5022X") ||
-                csName.endsWith("_MS932")) {
-                isInternal = true;
-            }
         }
 
         private Entry parse(Matcher m) {
@@ -539,13 +534,25 @@ public class TestCharsetMapping {
             if (tokens.length < 5) {
                 continue;
             }
-            CharsetInfo cs = new CharsetInfo(tokens[1], tokens[0]);
+            // dbcs format (we ignore the fields after pkg)
+            // clzName csName hisName dbtype pkg ascii b1min b1max b2min b2max
+            // sbcs format
+            // clzName csName hisName containASCII pkg
+            CharsetInfo cs = new CharsetInfo(/* csName */ tokens[1],
+                                             /* clzName */ tokens[0]);
             cs.hisName = tokens[2];
             cs.pkgName = tokens[4];
             if (sbcs) {
                 cs.type = "sbcs";
             } else {
                 cs.type = tokens[3];
+            }
+            if (("JIS_X_0208_Solaris".equals(tokens[0])) ||
+                ("JIS_X_0208_MS5022X".equals(tokens[0])) ||
+                ("JIS_X_0208_MS932".equals(tokens[0])) ||
+                ("JIS_X_0212_Solaris".equals(tokens[0])) ||
+                ("JIS_X_0212_MS5022X".equals(tokens[0]))) {
+                    cs.isInternal = true;
             }
             charsets.add(cs);
         }
@@ -570,10 +577,10 @@ public class TestCharsetMapping {
         int skipped = 0;
         int known = 0;
 
+        Set<CharsetInfo> charsets = charsets(dir.resolve("dbcs"), false);
         // sbcs files have fewer fields and a set type of sbcs
-        Set<CharsetInfo> charsets = charsets(dir.resolve("sbcs"), true);
         charsets.addAll(charsets(dir.resolve("extsbcs"), true));
-        charsets.addAll(charsets(dir.resolve("dbcs"), false));
+        charsets.addAll(charsets(dir.resolve("sbcs"), true));
 
         for (CharsetInfo csinfo : charsets) {
             String csname = csinfo.csName;
