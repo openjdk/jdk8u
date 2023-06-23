@@ -24,7 +24,6 @@
 /* @test
  * @bug 8186803
  * @summary Check if the linefeed is de/encoded correctly in ebcdic
- * @modules jdk.charsets
  */
 
 public class TestEBCDICLineFeed {
