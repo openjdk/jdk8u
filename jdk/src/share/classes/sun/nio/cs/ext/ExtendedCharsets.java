@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2002, 2013, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2002, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,9 +25,6 @@
 
 package sun.nio.cs.ext;
 
-import java.lang.ref.SoftReference;
-import java.nio.charset.Charset;
-import java.nio.charset.spi.CharsetProvider;
 import sun.nio.cs.AbstractCharsetProvider;
 import java.security.AccessController;
 import sun.security.action.GetPropertyAction;
@@ -117,7 +114,7 @@ public class ExtendedCharsets
 
         charset("GB18030", "GB18030",
                 new String[] {
-                    "gb18030-2000"
+                    GB18030.IS_2000 ? "gb18030-2000" : "gb18030-2022"
                 });
 
         charset("GB2312", "EUC_CN",

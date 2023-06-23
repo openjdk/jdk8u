@@ -34,7 +34,7 @@ import java.util.Iterator;
 import java.util.Locale;
 import java.util.Map;
 import sun.misc.ASCIICaseInsensitiveComparator;
-
+import sun.nio.cs.ext.GB18030;
 
 /**
  * Abstract base class for charset providers.
@@ -115,9 +115,14 @@ public class AbstractCharsetProvider
      */
     protected void init() { }
 
-    private String canonicalize(String charsetName) {
-        String acn = aliasMap.get(charsetName);
-        return (acn != null) ? acn : charsetName;
+    private String canonicalize(String csn) {
+        if (csn.startsWith("gb18030-")) {
+            return csn.equals("gb18030-2022") && !GB18030.IS_2000 ||
+                   csn.equals("gb18030-2000") && GB18030.IS_2000 ? "gb18030" : csn;
+        } else {
+            String acn = aliasMap.get(csn);
+            return (acn != null) ? acn : csn;
+        }
     }
 
     private Charset lookup(String csn) {
