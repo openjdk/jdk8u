@@ -1300,7 +1300,7 @@ public:
   // Divide the heap region sequence into "chunks" of some size (the number
   // of regions divided by the number of parallel threads times some
   // overpartition factor, currently 4).  Assumes that this will be called
-  // in parallel by ParallelGCThreads worker threads with discinct worker
+  // in parallel by ParallelGCThreads worker threads with distinct worker
   // ids in the range [0..max(ParallelGCThreads-1, 1)], that all parallel
   // calls will use the same "claim_value", and that that claim value is
   // different from the claim_value of any heap region before the start of
