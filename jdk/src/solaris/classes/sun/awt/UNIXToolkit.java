@@ -212,7 +212,9 @@ public abstract class UNIXToolkit extends SunToolkit
             synchronized (GTK_LOCK) {
                 result = shouldDisableSystemTray;
                 if (result == null) {
-                    if ("gnome".equals(getDesktop())) {
+                    String desktop = AccessController.doPrivileged(
+                            new GetPropertyAction("sun.desktop"));
+                    if ("gnome".equals(desktop)) {
                         @SuppressWarnings("removal")
                         Integer gnomeShellMajorVersion =
                                 AccessController
