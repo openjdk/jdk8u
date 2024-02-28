@@ -43,7 +43,6 @@
 runtime/SharedArchiveFile/SharedBaseAddress.java 8044600 solaris-sparc
 runtime/6929067/Test6929067.sh 8028740 generic-all
 runtime/CDSCompressedKPtrs/XShareAuto.java 8026154 generic-all
-runtime/XCheckJniJsig/XCheckJSig.java 8023735 generic-all
 runtime/6626217/Test6626217.sh 8028733 generic-all
 runtime/jsig/Test8017498.sh 8028806 generic-all
 runtime/LoadClass/LoadClassNegative.java 8028095 generic-all
@@ -53,14 +52,19 @@ runtime/memory/ReadFromNoaccessArea.java 8028398 generic-all
 
 # :hotspot_compiler
 
-compiler/rtm/locking/TestRTMAbortRatio.java 8183263 generic-x64
-compiler/rtm/locking/TestRTMAbortThreshold.java 8183263 generic-x64
-compiler/rtm/locking/TestRTMAfterNonRTMDeopt.java 8183263 generic-x64
-compiler/rtm/locking/TestRTMDeoptOnHighAbortRatio.java 8183263 generic-x64
-compiler/rtm/locking/TestRTMDeoptOnLowAbortRatio.java 8183263 generic-x64
-compiler/rtm/locking/TestRTMLockingCalculationDelay.java 8183263 generic-x64
-compiler/rtm/locking/TestRTMLockingThreshold.java 8183263 generic-x64
-compiler/rtm/locking/TestRTMSpinLoopCount.java 8183263 generic-x64
-compiler/rtm/locking/TestUseRTMDeopt.java 8183263 generic-x64
-compiler/rtm/locking/TestUseRTMXendForLockBusy.java 8183263 generic-x64
-compiler/rtm/print/TestPrintPreciseRTMLockingStatistics.java 8183263 generic-x64
+compiler/rtm/locking/TestRTMAbortRatio.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestRTMAbortThreshold.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestRTMAfterNonRTMDeopt.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestRTMDeoptOnHighAbortRatio.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestRTMDeoptOnLowAbortRatio.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestRTMLockingCalculationDelay.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestRTMLockingThreshold.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestRTMSpinLoopCount.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestUseRTMDeopt.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestUseRTMXendForLockBusy.java 8183263 generic-x64,generic-i586
+compiler/rtm/print/TestPrintPreciseRTMLockingStatistics.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestRTMTotalCountIncrRate.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestUseRTMAfterLockInflation.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestUseRTMForInflatedLocks.java 8183263 generic-x64,generic-i586
+compiler/rtm/locking/TestUseRTMForStackLocks.java 8183263 generic-x64,generic-i586
+compiler/rtm/method_options/TestUseRTMLockElidingOption.java 8183263 generic-x64,generic-i586

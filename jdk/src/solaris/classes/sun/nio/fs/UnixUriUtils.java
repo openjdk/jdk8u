@@ -87,6 +87,10 @@ class UnixUriUtils {
                     throw new IllegalArgumentException("Bad escape");
                 b = (byte)c;
             }
+            if (b == '/' && rlen > 0 && result[rlen-1] == '/') {
+                // skip redundant slashes
+                continue;
+            }
             result[rlen++] = b;
         }
         if (rlen != result.length)

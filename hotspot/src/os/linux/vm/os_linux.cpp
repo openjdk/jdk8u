@@ -184,21 +184,14 @@ julong os::Linux::available_memory() {
   julong avail_mem;
 
   if (OSContainer::is_containerized()) {
-    jlong mem_limit, mem_usage;
-    if ((mem_limit = OSContainer::memory_limit_in_bytes()) < 1) {
-      if (PrintContainerInfo) {
-        tty->print_cr("container memory limit %s: " JLONG_FORMAT ", using host value",
-                       mem_limit == OSCONTAINER_ERROR ? "failed" : "unlimited", mem_limit);
-      }
-    }
-
+    jlong mem_limit = OSContainer::memory_limit_in_bytes();
+    jlong mem_usage;
     if (mem_limit > 0 && (mem_usage = OSContainer::memory_usage_in_bytes()) < 1) {
       if (PrintContainerInfo) {
         tty->print_cr("container memory usage failed: " JLONG_FORMAT ", using host value", mem_usage);
       }
     }
-
-    if (mem_limit > 0 && mem_usage > 0 ) {
+    if (mem_limit > 0 && mem_usage > 0) {
       avail_mem = mem_limit > mem_usage ? (julong)mem_limit - (julong)mem_usage : 0;
       if (PrintContainerInfo) {
         tty->print_cr("available container memory: " JULONG_FORMAT, avail_mem);
@@ -224,11 +217,6 @@ julong os::physical_memory() {
         tty->print_cr("total container memory: " JLONG_FORMAT, mem_limit);
       }
       return mem_limit;
-    }
-
-    if (PrintContainerInfo) {
-      tty->print_cr("container memory limit %s: " JLONG_FORMAT ", using host value",
-                     mem_limit == OSCONTAINER_ERROR ? "failed" : "unlimited", mem_limit);
     }
   }
 
@@ -306,6 +294,14 @@ pid_t os::Linux::gettid() {
   } else {
      return (pid_t)rslt;
   }
+}
+
+// Returns the amount of swap currently configured, in bytes.
+// This can change at any time.
+julong os::Linux::host_swap() {
+  struct sysinfo si;
+  sysinfo(&si);
+  return (julong)si.totalswap;
 }
 
 // Most versions of linux have a bug where the number of processors are
@@ -1953,6 +1949,9 @@ void * os::dll_load(const char *filename, char *ebuf, int ebuflen)
   #ifndef EM_AARCH64
   #define EM_AARCH64    183               /* ARM AARCH64 */
   #endif
+  #ifndef EM_LOONGARCH
+  #define EM_LOONGARCH  258               /* LoongArch */
+  #endif
 
   static const arch_t arch_array[]={
     {EM_386,         EM_386,     ELFCLASS32, ELFDATA2LSB, (char*)"IA 32"},
@@ -1976,6 +1975,7 @@ void * os::dll_load(const char *filename, char *ebuf, int ebuflen)
     {EM_PARISC,      EM_PARISC,  ELFCLASS32, ELFDATA2MSB, (char*)"PARISC"},
     {EM_68K,         EM_68K,     ELFCLASS32, ELFDATA2MSB, (char*)"M68k"},
     {EM_AARCH64,     EM_AARCH64, ELFCLASS64, ELFDATA2LSB, (char*)"AARCH64"},
+    {EM_LOONGARCH,   EM_LOONGARCH, ELFCLASS64, ELFDATA2LSB, (char*)"LoongArch"},
   };
 
   #if  (defined IA32)
@@ -2008,9 +2008,11 @@ void * os::dll_load(const char *filename, char *ebuf, int ebuflen)
     static  Elf32_Half running_arch_code=EM_68K;
   #elif  (defined AARCH64)
     static  Elf32_Half running_arch_code=EM_AARCH64;
+  #elif  (defined LOONGARCH)
+    static  Elf32_Half running_arch_code=EM_LOONGARCH;
   #else
     #error Method os::dll_load requires that one of following is defined:\
-         IA32, AMD64, IA64, __sparc, __powerpc__, ARM, S390, ALPHA, MIPS, MIPSEL, PARISC, M68K, AARCH64
+         IA32, AMD64, IA64, __sparc, __powerpc__, ARM, S390, ALPHA, MIPS, MIPSEL, PARISC, M68K, AARCH64, LOONGARCH
   #endif
 
   // Identify compatability class for VM's architecture and library's architecture
@@ -2284,7 +2286,7 @@ void os::Linux::print_full_memory_info(outputStream* st) {
 }
 
 void os::Linux::print_container_info(outputStream* st) {
-if (!OSContainer::is_containerized()) {
+  if (!OSContainer::is_containerized()) {
     return;
   }
 

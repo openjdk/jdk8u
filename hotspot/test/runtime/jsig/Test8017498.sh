@@ -1,7 +1,7 @@
 #!/bin/sh
 
 #
-#  Copyright (c) 2013, Oracle and/or its affiliates. All rights reserved.
+#  Copyright (c) 2013, 2023, Oracle and/or its affiliates. All rights reserved.
 #  DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
 #
 #  This code is free software; you can redistribute it and/or modify it
@@ -47,7 +47,7 @@ case "$OS" in
   Linux)
     echo "Testing on Linux"
     gcc_cmd=`which gcc`
-    if [ "x$gcc_cmd" == "x" ]; then
+    if [ "x$gcc_cmd" = "x" ]; then
         echo "WARNING: gcc not found. Cannot execute test." 2>&1
         exit 0;
     fi
@@ -70,7 +70,7 @@ THIS_DIR=.
 cp ${TESTSRC}${FS}*.java ${THIS_DIR}
 ${TESTJAVA}${FS}bin${FS}javac *.java
 
-$gcc_cmd -DLINUX -fPIC -shared \
+$gcc_cmd -DLINUX ${CFLAGBITS} -fPIC -shared \
     -o ${TESTSRC}${FS}libTestJNI.so \
     -I${TESTJAVA}${FS}include \
     -I${TESTJAVA}${FS}include${FS}linux \

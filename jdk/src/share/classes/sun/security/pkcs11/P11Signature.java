@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -370,8 +370,9 @@ final class P11Signature extends SignatureSpi {
             // skip the check if no native info available
             return;
         }
-        int minKeySize = (int) mechInfo.ulMinKeySize;
-        int maxKeySize = (int) mechInfo.ulMaxKeySize;
+        int minKeySize = mechInfo.iMinKeySize;
+        int maxKeySize = mechInfo.iMaxKeySize;
+
         // need to override the MAX keysize for SHA1withDSA
         if (md != null && mechanism == CKM_DSA && maxKeySize > 1024) {
                maxKeySize = 1024;
@@ -395,11 +396,11 @@ final class P11Signature extends SignatureSpi {
                     " key must be the right type", cce);
             }
         }
-        if ((minKeySize != -1) && (keySize < minKeySize)) {
+        if (keySize < minKeySize) {
             throw new InvalidKeyException(keyAlgo +
                 " key must be at least " + minKeySize + " bits");
         }
-        if ((maxKeySize != -1) && (keySize > maxKeySize)) {
+        if (keySize > maxKeySize) {
             throw new InvalidKeyException(keyAlgo +
                 " key must be at most " + maxKeySize + " bits");
         }
@@ -727,9 +728,12 @@ final class P11Signature extends SignatureSpi {
             int len = (p11Key.length() + 7) >> 3;
             RSAPadding padding = RSAPadding.getInstance
                                         (RSAPadding.PAD_BLOCKTYPE_1, len);
-            byte[] padded = padding.pad(data);
-            return padded;
-        } catch (GeneralSecurityException e) {
+            byte[] result = padding.pad(data);
+            if (result == null) {
+                throw new ProviderException("Error padding data");
+            }
+            return result;
+        } catch (InvalidKeyException | InvalidAlgorithmParameterException e) {
             throw new ProviderException(e);
         }
     }

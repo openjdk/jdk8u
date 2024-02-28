@@ -30,4 +30,18 @@
 keys=cte_test jcmd nmt regression gc stress
 
 groups=TEST.groups [closed/TEST.groups]
-requires.properties=sun.arch.data.model
+
+# Source files for classes that will be used at the beginning of each test suite run,
+# to determine additional characteristics of the system for use with the @requires tag.
+requires.extraPropDefns = ../../test/jtreg-ext/requires/VMProps.java
+requires.properties=sun.arch.data.model \
+    vm.flavor \
+    vm.bits \
+    vm.debug
+
+# Minimum jtreg version
+requiredVersion=4.2 b13
+
+# Path to libraries in the topmost test directory. This is needed so @library
+# does not need ../../ notation to reach them
+external.lib.roots = ../../

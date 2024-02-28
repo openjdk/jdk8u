@@ -101,6 +101,7 @@ public class Stub implements AuxGen
       Util.mkdir (pkg);
       name = pkg + '/' + name;
     }
+    stubClassName = name.replace('/', '.');
     stream = Util.getStream (name.replace ('/', File.separatorChar) + ".java", i);
   } // openStream
 
@@ -342,6 +343,7 @@ public class Stub implements AuxGen
     stream.println ("  private void readObject (java.io.ObjectInputStream s) throws java.io.IOException");
     stream.println ("  {");
     stream.println ("     String str = s.readUTF ();");
+    stream.println ("     com.sun.corba.se.impl.orbutil.IORCheckImpl.check(str, \"" + stubClassName + "\");");
     stream.println ("     String[] args = null;");
     stream.println ("     java.util.Properties props = null;");
     stream.println ("     org.omg.CORBA.ORB orb = org.omg.CORBA.ORB.init (args, props);");
@@ -377,4 +379,5 @@ public class Stub implements AuxGen
   protected String         classSuffix = "";
   protected boolean        localStub = false;
   private   boolean        isAbstract = false;
+  private   String         stubClassName = null;
 } // class Stub

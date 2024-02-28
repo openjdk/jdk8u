@@ -2,7 +2,7 @@
 
 # @test JliLaunchTest.sh
 # @bug 8238225
-# @library /lib
+# @library /test/lib
 # @build JliLaunchTest
 # @run shell JliLaunchTest.sh
 
@@ -13,7 +13,7 @@ if [ "${OS}" != "Darwin" ]; then
 fi
 
 gcc_cmd=`which gcc`
-if [ "x$gcc_cmd" == "x" ]; then
+if [ "x$gcc_cmd" = "x" ]; then
     echo "WARNING: gcc not found. Cannot execute test." 2>&1
     exit 0;
 fi

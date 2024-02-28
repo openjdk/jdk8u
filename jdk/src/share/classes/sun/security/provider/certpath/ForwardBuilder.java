@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2000, 2016, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2000, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -258,14 +258,6 @@ class ForwardBuilder extends Builder {
             caSelector.setSubject(currentState.issuerDN);
 
             /*
-             * Match on subjectNamesTraversed (both DNs and AltNames)
-             * (checks that current cert's name constraints permit it
-             * to certify all the DNs and AltNames that have been traversed)
-             */
-            CertPathHelper.setPathToNames
-                (caSelector, currentState.subjectNamesTraversed);
-
-            /*
              * check the validity period
              */
             caSelector.setValidityPeriod(currentState.cert.getNotBefore(),
@@ -294,9 +286,7 @@ class ForwardBuilder extends Builder {
                         "\n  Issuer: " +
                             trustedCert.getIssuerX500Principal());
                 }
-                if (caCerts.add(trustedCert) && !searchAllCertStores) {
-                    return;
-                }
+                caCerts.add(trustedCert);
             }
         }
 
@@ -346,8 +336,11 @@ class ForwardBuilder extends Builder {
         }
     }
 
+    // Thread-local gate to prevent recursive provider lookups
+    private static ThreadLocal<Object> gate = new ThreadLocal<>();
+
     /**
-     * Download Certificates from the given AIA and add them to the
+     * Download certificates from the given AIA and add them to the
      * specified Collection.
      */
     // cs.getCertificates(caSelector) returns a collection of X509Certificate's
@@ -359,32 +352,47 @@ class ForwardBuilder extends Builder {
         if (Builder.USE_AIA == false) {
             return false;
         }
+
         List<AccessDescription> adList = aiaExt.getAccessDescriptions();
         if (adList == null || adList.isEmpty()) {
             return false;
         }
 
-        boolean add = false;
-        for (AccessDescription ad : adList) {
-            CertStore cs = URICertStore.getInstance(ad);
-            if (cs != null) {
-                try {
-                    if (certs.addAll((Collection<X509Certificate>)
-                        cs.getCertificates(caSelector))) {
-                        add = true;
-                        if (!searchAllCertStores) {
-                            return true;
+        if (gate.get() != null) {
+            // Avoid recursive fetching of certificates
+            if (debug != null) {
+                debug.println("Recursive fetching of certs via the AIA " +
+                    "extension detected");
+            }
+            return false;
+        }
+
+        gate.set(gate);
+        try {
+            boolean add = false;
+            for (AccessDescription ad : adList) {
+                CertStore cs = URICertStore.getInstance(ad);
+                if (cs != null) {
+                    try {
+                        if (certs.addAll((Collection<X509Certificate>)
+                            cs.getCertificates(caSelector))) {
+                            add = true;
+                            if (!searchAllCertStores) {
+                                return true;
+                            }
                         }
-                    }
-                } catch (CertStoreException cse) {
-                    if (debug != null) {
-                        debug.println("exception getting certs from CertStore:");
-                        cse.printStackTrace();
+                    } catch (CertStoreException cse) {
+                        if (debug != null) {
+                            debug.println("exception getting certs from CertStore:");
+                            cse.printStackTrace();
+                        }
                     }
                 }
             }
+            return add;
+        } finally {
+            gate.set(null);
         }
-        return add;
     }
 
     /**
@@ -675,8 +683,7 @@ class ForwardBuilder extends Builder {
      * only be executed in a reverse direction are deferred until the
      * complete path has been built.
      *
-     * Trust anchor certs are not validated, but are used to verify the
-     * signature and revocation status of the previous cert.
+     * Trust anchor certs are not validated.
      *
      * If the last certificate is being verified (the one whose subject
      * matches the target subject, then steps in 6.1.4 of the PKIX
@@ -705,21 +712,6 @@ class ForwardBuilder extends Builder {
 
         // Don't bother to verify untrusted certificate more.
         currState.untrustedChecker.check(cert, Collections.<String>emptySet());
-
-        /*
-         * check for looping - abort a loop if we encounter the same
-         * certificate twice
-         */
-        if (certPathList != null) {
-            for (X509Certificate cpListCert : certPathList) {
-                if (cert.equals(cpListCert)) {
-                    if (debug != null) {
-                        debug.println("loop detected!!");
-                    }
-                    throw new CertPathValidatorException("loop detected");
-                }
-            }
-        }
 
         /* check if trusted cert */
         boolean isTrustedCert = trustedCerts.contains(cert);
@@ -795,22 +787,6 @@ class ForwardBuilder extends Builder {
              * Check keyUsage extension
              */
             KeyChecker.verifyCAKeyUsage(cert);
-        }
-
-        /*
-         * the following checks are performed even when the cert
-         * is a trusted cert, since we are only extracting the
-         * subjectDN, and publicKey from the cert
-         * in order to verify a previous cert
-         */
-
-        /*
-         * Check signature only if no key requiring key parameters has been
-         * encountered.
-         */
-        if (!currState.keyParamsNeeded()) {
-            (currState.cert).verify(cert.getPublicKey(),
-                                    buildParams.sigProvider());
         }
     }
 

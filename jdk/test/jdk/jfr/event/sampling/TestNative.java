@@ -41,9 +41,9 @@ import jdk.test.lib.process.ProcessTools;
  * @test
  * @key jfr
  *
- * @library /lib /
- *
- * @run main/native jdk.jfr.event.sampling.TestNative
+ * @library /test/lib /
+ * @build TestNative
+ * @run shell TestNative.sh
  */
 public class TestNative {
 

@@ -47,7 +47,7 @@ case "$OS" in
   Linux)
     echo "Testing on Linux"
     gcc_cmd=`which gcc`
-    if [ "x$gcc_cmd" == "x" ]; then
+    if [ "x$gcc_cmd" = "x" ]; then
         echo "WARNING: gcc not found. Cannot execute test." 2>&1
         exit 0;
     fi
@@ -65,7 +65,7 @@ THIS_DIR=.
 cp ${TESTSRC}${FS}*.java ${THIS_DIR}
 ${TESTJAVA}${FS}bin${FS}javac *.java
 
-$gcc_cmd -fPIC -shared -c -o test.o \
+$gcc_cmd ${CFLAGBITS} -fPIC -shared -c -o test.o \
     -I${TESTJAVA}${FS}include -I${TESTJAVA}${FS}include${FS}linux \
     ${TESTSRC}${FS}test.c
 
@@ -88,7 +88,7 @@ echo ${TESTJAVA}${FS}bin${FS}java -cp ${THIS_DIR} Test test-rwx
 ${TESTJAVA}${FS}bin${FS}java -cp ${THIS_DIR} Test test-rwx
 JAVA_RETVAL=$?
 
-if [ "$JAVA_RETVAL" == "0" ]
+if [ "$JAVA_RETVAL" = "0" ]
 then
   echo
   echo ${TESTJAVA}${FS}bin${FS}java -cp ${THIS_DIR} TestMT test-rwx

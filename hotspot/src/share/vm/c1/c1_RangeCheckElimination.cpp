@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -249,17 +249,16 @@ void RangeCheckEliminator::Visitor::do_ArithmeticOp(ArithmeticOp *ao) {
 
         Bound * bound = _rce->get_bound(y);
         if (bound->has_upper() && bound->has_lower()) {
-          int new_lower = bound->lower() + const_value;
-          jlong new_lowerl = ((jlong)bound->lower()) + const_value;
-          int new_upper = bound->upper() + const_value;
-          jlong new_upperl = ((jlong)bound->upper()) + const_value;
-
-          if (((jlong)new_lower) == new_lowerl && ((jlong)new_upper == new_upperl)) {
-            Bound *newBound = new Bound(new_lower, bound->lower_instr(), new_upper, bound->upper_instr());
-            _bound = newBound;
-          } else {
-            // overflow
+          jint t_lo = bound->lower();
+          jint t_hi = bound->upper();
+          jint new_lower = java_add(t_lo, const_value);
+          jint new_upper = java_add(t_hi, const_value);
+          bool overflow = ((const_value < 0 && (new_lower > t_lo)) ||
+                           (const_value > 0 && (new_upper < t_hi)));
+          if (overflow) {
             _bound = new Bound();
+          } else {
+            _bound = new Bound(new_lower, bound->lower_instr(), new_upper, bound->upper_instr());
           }
         } else {
           _bound = new Bound();
@@ -380,8 +379,11 @@ void RangeCheckEliminator::add_access_indexed_info(InstructionList &indices, int
     aii->_max = idx;
     aii->_list = new AccessIndexedList();
   } else if (idx >= aii->_min && idx <= aii->_max) {
-    remove_range_check(ai);
-    return;
+    // Guard against underflow/overflow (see 'range_cond' check in RangeCheckEliminator::in_block_motion)
+    if (aii->_max < 0 || (aii->_max + min_jint) <= aii->_min) {
+      remove_range_check(ai);
+      return;
+    }
   }
   aii->_min = MIN2(aii->_min, idx);
   aii->_max = MAX2(aii->_max, idx);
@@ -424,9 +426,9 @@ void RangeCheckEliminator::in_block_motion(BlockBegin *block, AccessIndexedList 
           }
         }
       } else {
-        int last_integer = 0;
+        jint last_integer = 0;
         Instruction *last_instruction = index;
-        int base = 0;
+        jint base = 0;
         ArithmeticOp *ao = index->as_ArithmeticOp();
 
         while (ao != NULL && (ao->x()->as_Constant() || ao->y()->as_Constant()) && (ao->op() == Bytecodes::_iadd || ao->op() == Bytecodes::_isub)) {
@@ -438,12 +440,12 @@ void RangeCheckEliminator::in_block_motion(BlockBegin *block, AccessIndexedList 
           }
 
           if (c) {
-            int value = c->type()->as_IntConstant()->value();
+            jint value = c->type()->as_IntConstant()->value();
             if (value != min_jint) {
               if (ao->op() == Bytecodes::_isub) {
                 value = -value;
               }
-              base += value;
+              base = java_add(base, value);
               last_integer = base;
               last_instruction = other;
             }
@@ -465,12 +467,12 @@ void RangeCheckEliminator::in_block_motion(BlockBegin *block, AccessIndexedList 
         assert(info != NULL, "Info must not be null");
 
         // if idx < 0, max > 0, max + idx may fall between 0 and
-        // length-1 and if min < 0, min + idx may overflow and be >=
+        // length-1 and if min < 0, min + idx may underflow/overflow and be >=
         // 0. The predicate wouldn't trigger but some accesses could
         // be with a negative index. This test guarantees that for the
         // min and max value that are kept the predicate can't let
         // some incorrect accesses happen.
-        bool range_cond = (info->_max < 0 || info->_max + min_jint <= info->_min);
+        bool range_cond = (info->_max < 0 || (info->_max + min_jint) <= info->_min);
 
         // Generate code only if more than 2 range checks can be eliminated because of that.
         // 2 because at least 2 comparisons are done
@@ -810,7 +812,7 @@ void RangeCheckEliminator::process_access_indexed(BlockBegin *loop_header, Block
         );
 
         remove_range_check(ai);
-    } else if (_optimistic && loop_header) {
+    } else if (false && _optimistic && loop_header) {
       assert(ai->array(), "Array must not be null!");
       assert(ai->index(), "Index must not be null!");
 
@@ -1485,7 +1487,6 @@ void RangeCheckEliminator::Bound::add_assertion(Instruction *instruction, Instru
       NOT_PRODUCT(ao->set_printable_bci(position->printable_bci()));
       result = result->insert_after(ao);
       compare_with = ao;
-      // TODO: Check that add operation does not overflow!
     }
   }
   assert(compare_with != NULL, "You have to compare with something!");

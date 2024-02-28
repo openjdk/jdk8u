@@ -1,11 +1,6 @@
 /*
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
- * This file is available under and governed by the GNU General Public
- * License version 2 only, as published by the Free Software Foundation.
- * However, the following notice accompanied the original version of this
- * file and, per its terms, should not be removed:
- *
  * This code is free software; you can redistribute it and/or modify it
  * under the terms of the GNU General Public License version 2 only, as
  * published by the Free Software Foundation.  Oracle designates this
@@ -29,15 +24,16 @@
  * THIS FILE WAS MODIFIED BY ORACLE, INC.
  */
 
-/* pnglibconf.h - library build configuration */
-/* This file is available under and governed by the GNU General Public
+/* pnglibconf.h - library build configuration
+ *
+ * This file is available under and governed by the GNU General Public
  * License version 2 only, as published by the Free Software Foundation.
  * However, the following notice accompanied the original version of this
  * file and, per its terms, should not be removed:
  */
-/* libpng version 1.6.37 */
+/* libpng version 1.6.39 */
 
-/* Copyright (c) 2018-2019 Cosmin Truta */
+/* Copyright (c) 2018-2022 Cosmin Truta */
 /* Copyright (c) 1998-2002,2004,2006-2018 Glenn Randers-Pehrson */
 
 /* This code is released under the libpng license. */

@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2003, 2020, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2003, 2023, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -26,6 +26,8 @@
 package sun.security.rsa;
 
 import java.io.IOException;
+import java.io.InvalidObjectException;
+import java.io.ObjectInputStream;
 import java.math.BigInteger;
 
 import java.security.*;
@@ -43,7 +45,7 @@ import static sun.security.rsa.RSAUtil.KeyType;
  * RSA private key implementation for "RSA", "RSASSA-PSS" algorithms in CRT form.
  * For non-CRT private keys, see RSAPrivateKeyImpl. We need separate classes
  * to ensure correct behavior in instanceof checks, etc.
- *
+ * <p>
  * Note: RSA keys must be at least 512 bits long
  *
  * @see RSAPrivateKeyImpl
@@ -80,20 +82,26 @@ public final class RSAPrivateCrtKeyImpl
         RSAPrivateCrtKeyImpl key = new RSAPrivateCrtKeyImpl(encoded);
         // check all CRT-specific components are available, if any one
         // missing, return a non-CRT key instead
-        if ((key.getPublicExponent().signum() == 0) ||
+        if (checkComponents(key)) {
+            return key;
+        } else {
+            return new RSAPrivateKeyImpl(
+                key.algid,
+                key.getModulus(),
+                key.getPrivateExponent());
+        }
+    }
+
+    /**
+     * Validate if all CRT-specific components are available.
+     */
+    static boolean checkComponents(RSAPrivateCrtKey key) {
+        return !((key.getPublicExponent().signum() == 0) ||
             (key.getPrimeExponentP().signum() == 0) ||
             (key.getPrimeExponentQ().signum() == 0) ||
             (key.getPrimeP().signum() == 0) ||
             (key.getPrimeQ().signum() == 0) ||
-            (key.getCrtCoefficient().signum() == 0)) {
-            return new RSAPrivateKeyImpl(
-                key.algid,
-                key.getModulus(),
-                key.getPrivateExponent()
-            );
-        } else {
-            return key;
-        }
+            (key.getCrtCoefficient().signum() == 0));
     }
 
     /**
@@ -284,5 +292,20 @@ public final class RSAPrivateCrtKeyImpl
         } catch (IOException e) {
             throw new InvalidKeyException("Invalid RSA private key", e);
         }
+    }
+
+    /**
+     * Restores the state of this object from the stream.
+     * <p>
+     * Deserialization of this object is not supported.
+     *
+     * @param  stream the {@code ObjectInputStream} from which data is read
+     * @throws IOException if an I/O error occurs
+     * @throws ClassNotFoundException if a serialized class cannot be loaded
+     */
+    private void readObject(ObjectInputStream stream)
+            throws IOException, ClassNotFoundException {
+        throw new InvalidObjectException(
+                "RSAPrivateCrtKeyImpl keys are not directly deserializable");
     }
 }
