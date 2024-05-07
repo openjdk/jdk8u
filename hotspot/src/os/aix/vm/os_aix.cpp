@@ -1497,7 +1497,7 @@ void *os::dll_load(const char *filename, char *ebuf, int ebuflen) {
     snprintf(pointer_to_dot, sizeof(old_extension), "%s", new_extension);
     result = dll_load_library(file_path, ebuf, ebuflen);
   }
-  FREE_C_HEAP_ARRAY(char, file_path);
+  FREE_C_HEAP_ARRAY(char, file_path, mtInternal);
   return result;
 }
 
