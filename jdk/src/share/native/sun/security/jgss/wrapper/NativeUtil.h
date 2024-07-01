@@ -26,8 +26,12 @@
 #include <jni.h>
 #include <stdlib.h>
 #include <string.h>
+#ifdef _MSC_VER
 #if _MSC_VER >= 1800
 # include <inttypes.h>
+#endif
+#else
+#include <inttypes.h>
 #endif
 #include "gssapi.h"
 
@@ -94,11 +98,13 @@ extern "C" {
   #define TRACE3(s, p1, p2, p3) { if (JGSS_DEBUG) { printf("[GSSLibStub:%d] "s"\n", __LINE__, p1, p2, p3); fflush(stdout); }}
 
   // Visual Studio 2010-2012 doesn't provide inttypes.h so provide appropriate definitions here.
+  #ifdef _MSC_VER
   #if _MSC_VER < 1800
   #ifdef _LP64
   #define PRIuPTR       "I64u"
   #else
   #define PRIuPTR       "u"
+  #endif
   #endif
   #endif
 
