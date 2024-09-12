@@ -29,6 +29,7 @@ import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneOffset;
 import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
 import java.util.HashSet;
 import java.util.Map;
@@ -46,7 +47,8 @@ final class EntrustTLSPolicy {
     private static final Debug debug = Debug.getInstance("certpath");
 
     // SHA-256 certificate fingerprints of distrusted roots
-    private static final Set<String> FINGERPRINTS = new HashSet<>(Arrays.asList(
+    private static final Set<String> FINGERPRINTS =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
         // cacerts alias: entrustevca
         // DN: CN=Entrust Root Certification Authority,
         //     OU=(c) 2006 Entrust, Inc.,
@@ -86,7 +88,7 @@ final class EntrustTLSPolicy {
         // cacerts alias: affirmtrustpremiumeccca
         // DN: CN=AffirmTrust Premium ECC, O=AffirmTrust, C=US
         "BD71FDF6DA97E4CF62D1647ADD2581B07D79ADF8397EB4ECBA9C5E8488821423"
-    ));
+    )));
 
     // Any TLS Server certificate that is anchored by one of the Entrust
     // roots above and is issued after this date will be distrusted.
