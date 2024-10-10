@@ -44,8 +44,19 @@ extern "C" {
 #define GIF_ERROR 0
 #define GIF_OK 1
 
-#include <stdbool.h>
 #include <stddef.h>
+/** Begin JDK modifications to support building using old compilers**/
+#ifndef _WIN32
+#include <stdbool.h>
+#else
+#ifdef bool
+#undef bool
+#endif
+typedef int bool;
+#define false 0
+#define true 1
+#endif
+/** End JDK modifications to support building using old compilers**/
 
 #define GIF_STAMP "GIFVER" /* First chars in file - GIF stamp.  */
 #define GIF_STAMP_LEN sizeof(GIF_STAMP) - 1
