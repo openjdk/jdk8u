@@ -28,7 +28,10 @@ import java.security.cert.X509Certificate;
 import java.time.LocalDate;
 import java.time.Month;
 import java.time.ZoneOffset;
+import java.util.Arrays;
+import java.util.Collections;
 import java.util.Date;
+import java.util.HashSet;
 import java.util.Map;
 import java.util.Set;
 
@@ -44,7 +47,8 @@ final class CamerfirmaTLSPolicy {
     private static final Debug debug = Debug.getInstance("certpath");
 
     // SHA-256 certificate fingerprints of distrusted roots
-    private static final Set<String> FINGERPRINTS = Set.of(
+    private static final Set<String> FINGERPRINTS =
+            Collections.unmodifiableSet(new HashSet<>(Arrays.asList(
         // cacerts alias: camerfirmachamberscommerceca
         // DN: CN=Chambers of Commerce Root,
         //     OU=http://www.chambersign.org,
@@ -62,7 +66,7 @@ final class CamerfirmaTLSPolicy {
         //     L=Madrid (see current address at www.camerfirma.com/address),
         //     C=EU
         "136335439334A7698016A0D324DE72284E079D7B5220BB8FBD747816EEBEBACA"
-    );
+    )));
 
     // Any TLS Server certificate that is anchored by one of the Camerfirma
     // roots above and is issued after this date will be distrusted.
@@ -87,8 +91,8 @@ final class CamerfirmaTLSPolicy {
         }
         if (FINGERPRINTS.contains(fp)) {
             Date notBefore = chain[0].getNotBefore();
-            LocalDate ldNotBefore = LocalDate.ofInstant(notBefore.toInstant(),
-                                                        ZoneOffset.UTC);
+            LocalDate ldNotBefore = notBefore.toInstant()
+                    .atZone(ZoneOffset.UTC).toLocalDate();
             // reject if certificate is issued after April 15, 2025
             checkNotBefore(ldNotBefore, APRIL_15_2025, anchor);
         }
