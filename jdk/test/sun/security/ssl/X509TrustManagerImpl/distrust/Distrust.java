@@ -34,7 +34,6 @@ import sun.security.validator.ValidatorException;
 /**
  * Helper class that provides methods to facilitate testing of distrusted roots.
  */
-
 public final class Distrust {
 
     private static final String TEST_SRC = System.getProperty("test.src", ".");
