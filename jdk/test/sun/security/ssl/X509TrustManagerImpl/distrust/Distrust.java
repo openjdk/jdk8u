@@ -76,6 +76,7 @@ public final class Distrust {
         for (String test : tests) {
             System.err.println("Testing " + test);
             X509Certificate[] chain = loadCertificateChain(certPath, test);
+
             for (X509TrustManager tm : tms) {
                 testTM(tm, chain, notBefore, isValid);
             }
