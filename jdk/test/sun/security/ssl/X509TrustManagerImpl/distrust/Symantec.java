@@ -33,7 +33,6 @@ import java.util.*;
  * @summary Check that TLS Server certificates chaining back to distrusted
  *          Symantec roots are invalid
  * @library /lib/security
- * @modules java.base/sun.security.validator
  * @run main/othervm Symantec after policyOn invalid
  * @run main/othervm Symantec after policyOff valid
  * @run main/othervm Symantec before policyOn valid
