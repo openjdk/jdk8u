@@ -32,7 +32,6 @@ import javax.net.ssl.*;
  * @summary Check that TLS Server certificates chaining back to distrusted
  *          Entrust roots are invalid
  * @library /lib/security
- * @modules java.base/sun.security.validator
  * @run main/othervm Entrust after policyOn invalid
  * @run main/othervm Entrust after policyOff valid
  * @run main/othervm Entrust before policyOn valid
