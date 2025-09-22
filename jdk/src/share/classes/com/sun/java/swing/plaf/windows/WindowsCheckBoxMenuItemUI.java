@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1997, 2006, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1997, 2025, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -25,10 +25,16 @@
 
 package com.sun.java.swing.plaf.windows;
 
-import java.awt.*;
-import javax.swing.*;
-import javax.swing.plaf.*;
-import javax.swing.plaf.basic.*;
+import java.awt.Color;
+import java.awt.Graphics;
+import java.awt.Rectangle;
+
+import javax.swing.ButtonModel;
+import javax.swing.Icon;
+import javax.swing.JComponent;
+import javax.swing.JMenuItem;
+import javax.swing.plaf.ComponentUI;
+import javax.swing.plaf.basic.BasicCheckBoxMenuItemUI;
 
 import com.sun.java.swing.plaf.windows.TMSchema.Part;
 import com.sun.java.swing.plaf.windows.TMSchema.State;
@@ -74,6 +80,24 @@ public class WindowsCheckBoxMenuItemUI extends BasicCheckBoxMenuItemUI {
         }
         super.paintBackground(g, menuItem, bgColor);
     }
+
+    /**
+     * Paint MenuItem.
+     */
+    protected void paintMenuItem(Graphics g, JComponent c,
+                                 Icon checkIcon, Icon arrowIcon,
+                                 Color background, Color foreground,
+                                 int defaultTextIconGap) {
+        if (WindowsMenuItemUI.isVistaPainting()) {
+            WindowsMenuItemUI.paintMenuItem(accessor, g, c, checkIcon,
+                    arrowIcon, background, foreground, defaultTextIconGap,
+                    menuItem, getPropertyPrefix());
+            return;
+        }
+        super.paintMenuItem(g, c, checkIcon, arrowIcon, background,
+                foreground, defaultTextIconGap);
+    }
+
     /**
      * Method which renders the text of the current menu item.
      * <p>
