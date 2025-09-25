@@ -785,6 +785,7 @@ public class WindowsIconFactory implements Serializable
                 }
                 assert menuItem == null || c == menuItem;
                 Icon icon = getIcon();
+
                 if (type == JCheckBoxMenuItem.class
                       || type == JRadioButtonMenuItem.class) {
                     AbstractButton b = (AbstractButton) c;
