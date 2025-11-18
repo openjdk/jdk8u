@@ -1366,6 +1366,7 @@ jobs:
       BOOT_JDK_FILENAME: "${{ fromJson(needs.prerequisites.outputs.dependencies).MACOS_X64_BOOT_JDK_FILENAME }}"
       BOOT_JDK_URL: "${{ fromJson(needs.prerequisites.outputs.dependencies).MACOS_X64_BOOT_JDK_URL }}"
       BOOT_JDK_SHA256: "${{ fromJson(needs.prerequisites.outputs.dependencies).MACOS_X64_BOOT_JDK_SHA256 }}"
+      CXXFLAGS: -std=gnu++98
 
     steps:
       - name: Checkout the source
@@ -1437,6 +1438,7 @@ jobs:
           --with-boot-jdk=${HOME}/bootjdk/${BOOT_JDK_VERSION}/Contents/Home
           --with-jtreg=${HOME}/jtreg
           --with-zlib=system
+          --with-extra-cxxflags=-std=gnu++98
         working-directory: jdk
 
       - name: Build

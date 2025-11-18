@@ -112,6 +112,8 @@ ifdef DEFAULT_LIBPATH
 CXXFLAGS += -DDEFAULT_LIBPATH="\"$(DEFAULT_LIBPATH)\""
 endif
 
+CXXFLAGS += $(EXTRA_CXXFLAGS)
+
 # CFLAGS_WARN holds compiler options to suppress/enable warnings.
 CFLAGS += $(CFLAGS_WARN/BYFILE)
 
