@@ -418,6 +418,10 @@ ifeq ($(OPENJDK_TARGET_OS), macosx)
   LIBJLI_CFLAGS += -mmacosx-version-min=$(MACOSX_VERSION_MIN)
 endif
 
+ifeq ($(TOOLCHAIN_TYPE), clang)
+  LIBJLI_CFLAGS += -Wno-int-conversion
+endif
+
 ifneq ($(USE_EXTERNAL_LIBZ), true)
   BUILD_LIBJLI_SRC_DIRS += $(JDK_TOPDIR)/src/share/native/java/util/zip/zlib
   LIBJLI_CFLAGS += $(ZLIB_CPPFLAGS)
