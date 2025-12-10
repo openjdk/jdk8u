@@ -160,12 +160,23 @@ public final class WaveFloatFileReader extends AudioFileReader {
 
     public AudioInputStream getAudioInputStream(URL url)
             throws UnsupportedAudioFileException, IOException {
-        return getAudioInputStream(new BufferedInputStream(url.openStream()));
+        InputStream stream = url.openStream();
+        try {
+            return getAudioInputStream(new BufferedInputStream(stream));
+        } catch (Exception e) {
+            stream.close();
+            throw e;
+        }
     }
 
     public AudioInputStream getAudioInputStream(File file)
             throws UnsupportedAudioFileException, IOException {
-        return getAudioInputStream(new BufferedInputStream(new FileInputStream(
-                file)));
+        InputStream stream = new FileInputStream(file);
+        try {
+            return getAudioInputStream(new BufferedInputStream(stream));
+        } catch (Exception e) {
+            stream.close();
+            throw e;
+        }
     }
 }
