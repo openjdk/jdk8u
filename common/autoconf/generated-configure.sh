@@ -43382,7 +43382,7 @@ $as_echo "$supports" >&6; }
     # FIXME: This needs to be exported in spec.gmk due to closed legacy code.
     # FIXME: clean this up, and/or move it elsewhere.
 
-    # Setting these parameters makes it an error to link to macosx APIs that are
+    # Setting these parameters makes it an error to link to macOS APIs that are
     # newer than the given OS version and makes the linked binaries compatible
     # even if built on a newer version of the OS.
     # The expected format is X.Y.Z
