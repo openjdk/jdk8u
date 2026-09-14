@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 1995, 2021, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 1995, 2026, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -320,13 +320,16 @@ class ZipFile implements ZipConstants, Closeable {
         long jzentry = 0;
         synchronized (this) {
             ensureOpen();
-            jzentry = getEntry(jzfile, zc.getBytes(name));
-            if (jzentry == 0 && !name.endsWith("/")) {
-                // If no entry is found for the specified 'name' and
-                // the 'name' does not end with a forward slash '/',
-                // we try to find an entry with a slash '/' appended
-                // to the end of the 'name'.
-                jzentry = getEntry(jzfile, zc.getBytes(name + "/"));
+            // getEntry searches for 'name' and 'name/' among entries,
+            // when the coder is UTF-8, so that the forward slash
+            // is encoded simply as 0x2F. Other coders may
+            // have different representations of the forward slash.
+            jzentry = getEntry(jzfile, zc.getBytes(name), zc.isUTF8());
+            if (jzentry == 0 && !zc.isUTF8() && !name.endsWith("/")) {
+                // If no entry has been found and the coder isn't UTF-8,
+                // and the name doesn't end with a forward slash,
+                // try appending it before encoding.
+                jzentry = getEntry(jzfile, zc.getBytes(name + "/"), false);
             }
             if (jzentry != 0) {
                 // When we search for the name of an entry with an appended
@@ -341,7 +344,7 @@ class ZipFile implements ZipConstants, Closeable {
         return null;
     }
 
-    private static native long getEntry(long jzfile, byte[] name);
+    private static native long getEntry(long jzfile, byte[] name, boolean autoSlash);
 
     // freeEntry releases the C jzentry struct.
     private static native void freeEntry(long jzfile, long jzentry);
@@ -373,9 +376,9 @@ class ZipFile implements ZipConstants, Closeable {
         synchronized (this) {
             ensureOpen();
             if (!zc.isUTF8() && (entry.flag & EFS) != 0) {
-                jzentry = getEntry(jzfile, zc.getBytesUTF8(entry.name));
+                jzentry = getEntry(jzfile, zc.getBytesUTF8(entry.name), false);
             } else {
-                jzentry = getEntry(jzfile, zc.getBytes(entry.name));
+                jzentry = getEntry(jzfile, zc.getBytes(entry.name), false);
             }
             if (jzentry == 0) {
                 return null;
