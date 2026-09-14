@@ -239,13 +239,6 @@ typedef struct jzfile {   /* Zip file */
  */
 #define ZIP_ENDCHAIN ((jint)-1)
 
-/*
- * Returns the ZIP entry corresponding to the given (NULL terminated)
- * entry name. Returns NULL if no entry is found by that name.
- * If the entry is found, then the value of the given sizeP will be
- * updated to the ZIP entry's size and the value of nameLenP will be
- * updated to the ZIP entry name's length.
- */
 jzentry * JNICALL
 ZIP_FindEntry(jzfile *zip, const char *name, jint *sizeP, jint *nameLenP);
 
@@ -273,14 +266,11 @@ ZIP_Put_In_Cache0(const char *name, ZFILE zfd, char **pmsg, jlong lastModified, 
 void JNICALL
 ZIP_Close(jzfile *zip);
 
-/*
- * Returns the ZIP entry corresponding to the given (NULL terminated)
- * entry name. Returns NULL if no entry is found by that name.
- */
-jzentry * ZIP_GetEntry(jzfile *zip, const char *name);
+jzentry * ZIP_GetEntry(jzfile *zip, const char *name, jint ulen);
 void ZIP_Lock(jzfile *zip);
 void ZIP_Unlock(jzfile *zip);
 jint ZIP_Read(jzfile *zip, jzentry *entry, jlong pos, void *buf, jint len);
 void ZIP_FreeEntry(jzfile *zip, jzentry *ze);
 jlong ZIP_GetEntryDataOffset(jzfile *zip, jzentry *entry);
+jzentry * ZIP_GetEntry2(jzfile *zip, const char *name, jint ulen, jboolean autoSlash);
 #endif /* !_ZIP_H_ */
