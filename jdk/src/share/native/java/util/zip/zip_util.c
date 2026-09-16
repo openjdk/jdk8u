@@ -1159,8 +1159,20 @@ ZIP_FreeEntry(jzfile *jz, jzentry *ze)
     }
 }
 
-static jboolean
-equals(const char* name1, int len1, const char* name2, int len2) {
+/*
+ * Returns the zip entry corresponding to the specified name, or
+ * NULL if not found.
+ */
+jzentry *
+ZIP_GetEntry(jzfile *zip, const char *name, jint ulen)
+{
+    if (ulen == 0) {
+        return ZIP_GetEntry2(zip, name, strlen(name), JNI_FALSE);
+    }
+    return ZIP_GetEntry2(zip, name, ulen, JNI_TRUE);
+}
+
+jboolean equals(const char* name1, int len1, const char* name2, int len2) {
     if (len1 != len2) {
         return JNI_FALSE;
     }
@@ -1172,13 +1184,18 @@ equals(const char* name1, int len1, const char* name2, int len2) {
     return JNI_TRUE;
 }
 
+/*
+ * Returns the zip entry corresponding to the specified name, or
+ * NULL if not found.
+ * This method supports embedded null character in "name", use ulen
+ * for the length of "name".
+ */
 jzentry *
-ZIP_GetEntry(jzfile *zip, const char *name)
+ZIP_GetEntry2(jzfile *zip, const char *name, jint ulen, jboolean autoSlash)
 {
-    // length of the entry name being searched for
-    const jint name_len =  (jint) strlen(name);
-    const unsigned int hsh = hashN(name, name_len);
+    unsigned int hsh = hashN(name, ulen);
     jint idx;
+    jint skip_slash = 0;
     jzentry *ze = 0;
 
     ZIP_Lock(zip);
@@ -1190,44 +1207,79 @@ ZIP_GetEntry(jzfile *zip, const char *name)
 
     /* Check the cached entry first */
     ze = zip->cache;
-    if (ze && equals(ze->name, ze->nlen, name, name_len)) {
-        /* Cache hit!  Remove and return the cached entry. */
-        zip->cache = 0;
-        ZIP_Unlock(zip);
-        return ze;
+    if (ze != NULL && ze->nlen > 0) {
+        jsize nlen = ze->nlen;
+        if (autoSlash && ze->name[nlen - 1] == '/' && name[ulen - 1] != '/' ) {
+            --nlen;
+        }
+        if (equals(ze->name, nlen, name, ulen)) {
+            /* Cache hit! Remove and return the cached entry. */
+            zip->cache = 0;
+            ZIP_Unlock(zip);
+            return ze;
+        }
     }
     ze = 0;
 
     /*
-     * Search down the target hash chain for a cell whose
-     * 32 bit hash matches the hashed name.
+     * This while loop is an optimization where a double lookup
+     * for name and name+/ is being performed.
      */
-    while (idx != ZIP_ENDCHAIN) {
-        jzcell *zc = &zip->entries[idx];
+    while(1) {
 
-        if (zc->hash == hsh) {
-            /*
-             * OK, we've found a ZIP entry whose 32 bit hashcode
-             * matches the name we're looking for.  Try to read
-             * its entry information from the CEN.  If the CEN
-             * name matches the name we're looking for, we're
-             * done.
-             * If the names don't match (which should be very rare)
-             * we keep searching.
-             */
-            ze = newEntry(zip, zc, ACCESS_RANDOM);
-            if (ze && equals(ze->name, ze->nlen, name, name_len)) {
-                break;
+        /*
+         * Search down the target hash chain for a cell whose
+         * 32 bit hash matches the hashed name.
+         */
+        while (idx != ZIP_ENDCHAIN) {
+            jzcell *zc = &zip->entries[idx];
+
+            if (zc->hash == hsh) {
+                /*
+                 * OK, we've found a ZIP entry whose 32 bit hashcode
+                 * matches the name we're looking for.  Try to read
+                 * its entry information from the CEN.  If the CEN
+                 * name matches the name we're looking for, we're
+                 * done.
+                 * If the names don't match (which should be very rare)
+                 * we keep searching.
+                 */
+                ze = newEntry(zip, zc, ACCESS_RANDOM);
+                if (ze && (skip_slash == 0 || ( ze->nlen > 0 && ze->name[ze->nlen - 1] == '/')) &&
+                        equals(ze->name, ze->nlen - skip_slash, name, ulen)) {
+                    break;
+                }
+                if (ze != 0) {
+                    /* We need to release the lock across the free call */
+                    ZIP_Unlock(zip);
+                    ZIP_FreeEntry(zip, ze);
+                    ZIP_Lock(zip);
+                }
+                ze = 0;
             }
-            if (ze != 0) {
-                /* We need to release the lock across the free call */
-                ZIP_Unlock(zip);
-                ZIP_FreeEntry(zip, ze);
-                ZIP_Lock(zip);
-            }
-            ze = 0;
+            idx = zc->next;
         }
-        idx = zc->next;
+
+        /* Entry found, return it */
+        if (ze != 0) {
+            break;
+        }
+
+        /* If no need to try appending slash, we are done */
+        if (!autoSlash) {
+            break;
+        }
+
+        /* Slash is already there? */
+        if (ulen > 0 && name[ulen-1] == '/') {
+            break;
+        }
+
+        /* Add slash to the hash and try once more */
+        hsh = hash_append(hsh, '/');
+        idx = zip->table[hsh % zip->tablelen];
+        skip_slash = 1;
+        autoSlash = JNI_FALSE;
     }
 Finally:
     ZIP_Unlock(zip);
@@ -1441,7 +1493,7 @@ InflateFully(jzfile *zip, jzentry *entry, void *buf, char **msg)
 jzentry * JNICALL
 ZIP_FindEntry(jzfile *zip, const char *name, jint *sizeP, jint *nameLenP)
 {
-    jzentry *entry = ZIP_GetEntry(zip, name);
+    jzentry *entry = ZIP_GetEntry(zip, name, 0);
     if (entry) {
         *sizeP = (jint)entry->size;
         *nameLenP = strlen(entry->name);
