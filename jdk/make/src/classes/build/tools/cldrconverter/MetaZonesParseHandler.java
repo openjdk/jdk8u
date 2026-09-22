@@ -37,6 +37,8 @@ import org.xml.sax.SAXException;
 class MetaZonesParseHandler extends AbstractLDMLHandler<String> {
     // "from"/"to" attribute values of <usesMetazone> in metaZones.xml
     private static final SimpleDateFormat MZ_TIME = new SimpleDateFormat("yyyy-MM-dd HH:mm");
+    private static final Date DATE_MIN = new Date(Long.MIN_VALUE);
+    private static final Date DATE_MAX = new Date(Long.MAX_VALUE);
     private static final Date NOW = new Date();
 
     private String tzid, metazone;
@@ -65,8 +67,8 @@ class MetaZonesParseHandler extends AbstractLDMLHandler<String> {
 
         case "usesMetazone":
             // uses the time of the JDK build to determine metazones.
-            Date from = parseMzTime(attributes.getValue("from"), new Date(Long.MIN_VALUE));
-            Date to = parseMzTime(attributes.getValue("to"), new Date(Long.MAX_VALUE));
+            Date from = parseMzTime(attributes.getValue("from"), DATE_MIN);
+            Date to = parseMzTime(attributes.getValue("to"), DATE_MAX);
 
             if (from.before(NOW) && to.after(NOW)) {
                 metazone = attributes.getValue("mzone");
@@ -113,9 +115,9 @@ class MetaZonesParseHandler extends AbstractLDMLHandler<String> {
         currentContainer = currentContainer.getParent();
     }
 
-    private static Date parseMzTime(String value, Date dflt) throws SAXException {
+    private static Date parseMzTime(String value, Date defaultValue) throws SAXException {
         if (value == null) {
-            return dflt;
+            return defaultValue;
         }
         try {
             return MZ_TIME.parse(value);
