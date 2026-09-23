@@ -164,7 +164,9 @@ public final class TimeZoneNameUtility {
 
         String[] dstOffsets = cldrAdapter.getLocaleResources(Locale.ROOT)
             .getTimeZoneNames("metazone.dstoffset." + canonicalID);
-        return dstOffsets != null ? dstOffsets[0] : null;
+        // First index is metazone.dstoffset.<canonicalID>, second index
+        // is the actual offset (if any)
+        return dstOffsets != null && dstOffsets.length >= 2 ? dstOffsets[1] : null;
     }
 
     private static String[] retrieveDisplayNamesImpl(String id, Locale locale) {

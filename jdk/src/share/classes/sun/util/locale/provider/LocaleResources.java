@@ -264,11 +264,7 @@ public class LocaleResources {
         if (Objects.isNull(data) || Objects.isNull((names = (String[]) data.get()))) {
             TimeZoneNamesBundle tznb = localeData.getTimeZoneNames(locale);
             if (tznb.containsKey(key)) {
-                if (key.startsWith(TZNB_METAZONE_DSTOFFSET_PREFIX)) {
-                    names = new String[] { tznb.getString(key) };
-                } else {
-                    names = tznb.getStringArray(key);
-                }
+                names = tznb.getStringArray(key);
                 cache.put(cacheKey,
                           new ResourceReference(cacheKey, (Object) names, referenceQueue));
             }

@@ -555,8 +555,10 @@ public class CLDRConverter {
         // Explicit metazone offsets
         if (id.equals("root")) {
             for (Map.Entry<String, String> entry : explicitDstOffsets.entrySet()) {
+                // ensure metazone dstOffsets are String arrays in the generated
+                // resource bundles as resource bundle retrieval code expects those
                 names.put(METAZONE_DSTOFFSET_PREFIX + entry.getKey(),
-                          entry.getValue());
+                          new String[] { entry.getValue() });
             }
         }
         return names;
