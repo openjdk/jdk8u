@@ -87,12 +87,12 @@ public class TestZoneTextPrinterParser extends AbstractTestPrinterParser {
                 long epochMilli = zdt.toInstant().toEpochMilli();
                 boolean isDST = tz.inDaylightTime(new Date(epochMilli));
                 // Some zones now use an explicit daylight offset in CLDR without
-                // java.util.TimeZone reporting DST for the instant. JDK 8 does not
-                // use CLDR by default, so apply this rule only when CLDR supplies
-                // the names for the locale.
+                // java.util.TimeZone reporting DST for the instant.
                 boolean hasExplicitDaylightOffset = tz.getDSTSavings() == 0
                         && tz.getOffset(epochMilli) > tz.getRawOffset();
                 for (Locale locale : locales) {
+                    // JDK 8 does not use CLDR by default, so apply this rule only
+                    // when CLDR supplies the names for the locale.
                     boolean useDaylightName = isDST || (hasExplicitDaylightOffset
                             && LocaleProviderAdapter.getAdapter(TimeZoneNameProvider.class, locale)
                                     .getAdapterType() == LocaleProviderAdapter.Type.CLDR);
