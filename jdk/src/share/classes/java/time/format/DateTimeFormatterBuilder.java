@@ -3698,6 +3698,7 @@ public final class DateTimeFormatterBuilder {
             if (!(zone instanceof ZoneOffset)) {
                 TemporalAccessor dt = context.getTemporal();
                 int type = GENERIC;
+                // Check if an explicit metazone DST offset exists
                 String dstOffset = TimeZoneNameUtility.explicitDstOffset(zname);
                 if (dt.isSupported(OFFSET_SECONDS) && dstOffset != null) {
                     type = ZoneOffset.from(dt).equals(ZoneOffset.of(dstOffset)) ? DST : STD;
