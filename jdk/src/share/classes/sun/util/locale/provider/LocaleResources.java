@@ -1,5 +1,5 @@
 /*
- * Copyright (c) 2012, 2026, Oracle and/or its affiliates. All rights reserved.
+ * Copyright (c) 2012, 2013, Oracle and/or its affiliates. All rights reserved.
  * DO NOT ALTER OR REMOVE COPYRIGHT NOTICES OR THIS FILE HEADER.
  *
  * This code is free software; you can redistribute it and/or modify it
@@ -254,27 +254,23 @@ public class LocaleResources {
         return (String) localeName;
     }
 
-    Object getTimeZoneNames(String key) {
-        Object val = null;
+    String[] getTimeZoneNames(String key) {
+        String[] names = null;
         String cacheKey = TIME_ZONE_NAMES + '.' + key;
 
         removeEmptyReferences();
         ResourceReference data = cache.get(cacheKey);
 
-        if (Objects.isNull(data) || Objects.isNull((val = data.get()))) {
+        if (Objects.isNull(data) || Objects.isNull((names = (String[]) data.get()))) {
             TimeZoneNamesBundle tznb = localeData.getTimeZoneNames(locale);
             if (tznb.containsKey(key)) {
-                if (key.startsWith(TZNB_METAZONE_DSTOFFSET_PREFIX)) {
-                    val = tznb.getString(key);
-                } else {
-                    val = tznb.getStringArray(key);
-                }
+                names = tznb.getStringArray(key);
                 cache.put(cacheKey,
-                          new ResourceReference(cacheKey, val, referenceQueue));
+                          new ResourceReference(cacheKey, (Object) names, referenceQueue));
             }
         }
 
-        return val;
+        return names;
     }
 
     @SuppressWarnings("unchecked")
