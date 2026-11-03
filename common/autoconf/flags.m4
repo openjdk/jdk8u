@@ -414,6 +414,8 @@ AC_DEFUN_ONCE([FLAGS_SETUP_COMPILER_FLAGS_FOR_JDK],
       LEGACY_TARGET_LDFLAGS="$LEGACY_TARGET_LDFLAGS -Wl,-z,relro"
     fi
     $2CXXSTD_CXXFLAG="-std=gnu++98"
+    # A language standard in --with-extra-cxxflags takes precedence
+    case " $with_extra_cxxflags " in *" -std="*) $2CXXSTD_CXXFLAG="" ;; esac
     FLAGS_CXX_COMPILER_CHECK_ARGUMENTS([[$]$2CXXSTD_CXXFLAG -Werror],
                                        [], [$2CXXSTD_CXXFLAG=""])
     $2CXXFLAGS_JDK="${$2CXXFLAGS_JDK} ${$2CXXSTD_CXXFLAG}"

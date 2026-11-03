@@ -42656,6 +42656,8 @@ $as_echo "$ac_cv_c_bigendian" >&6; }
       LEGACY_TARGET_LDFLAGS="$LEGACY_TARGET_LDFLAGS -Wl,-z,relro"
     fi
     CXXSTD_CXXFLAG="-std=gnu++98"
+    # A language standard in --with-extra-cxxflags takes precedence
+    case " $with_extra_cxxflags " in *" -std="*) CXXSTD_CXXFLAG="" ;; esac
 
   { $as_echo "$as_me:${as_lineno-$LINENO}: checking if the C++ compiler supports \"$CXXSTD_CXXFLAG -Werror\"" >&5
 $as_echo_n "checking if the C++ compiler supports \"$CXXSTD_CXXFLAG -Werror\"... " >&6; }
