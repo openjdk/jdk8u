@@ -39,6 +39,10 @@
 #include <sys/poll.h>
 #include "jvm.h"
 
+#ifndef __SIGRTMAX
+#define __SIGRTMAX SIGRTMAX
+#endif
+
 /*
  * Stack allocated by thread when doing blocking operation
  */
