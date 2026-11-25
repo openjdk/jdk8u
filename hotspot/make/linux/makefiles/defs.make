@@ -331,6 +331,12 @@ ADD_SA_BINARIES/zero  =
 
 -include $(HS_ALT_MAKE)/linux/makefiles/defs.make
 
-EXPORT_LIST += $(ADD_SA_BINARIES/$(HS_ARCH))
+# libsaproc needs thread_db.h, which not every C library provides
+SA_HAS_THREAD_DB ?= $(shell $(if $(CC),$(CC),cc) -E -include thread_db.h -x c /dev/null >/dev/null 2>&1 && echo yes)
+ifeq ($(SA_HAS_THREAD_DB),yes)
+  EXPORT_LIST += $(ADD_SA_BINARIES/$(HS_ARCH))
+else
+  EXPORT_LIST += $(filter-out %/libsaproc.$(LIBRARY_SUFFIX) %/libsaproc.diz %/libsaproc.debuginfo,$(ADD_SA_BINARIES/$(HS_ARCH)))
+endif
 
 
